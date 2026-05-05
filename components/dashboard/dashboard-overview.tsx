@@ -7,6 +7,7 @@ import { TaskBoard } from "./task-board"
 import { Users, TrendingUp, AlertTriangle, Car, Loader2 } from "lucide-react"
 import { collection, getDocs, query, where } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import { useAuth } from "@/components/providers/auth-provider"
 
 interface LiveStats {
   totalStaff: number
@@ -20,8 +21,10 @@ interface DashboardOverviewProps {
 }
 
 export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
+  const { profile } = useAuth()
   const [stats, setStats]     = useState<LiveStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const isManagerOrAdmin = profile?.role === "ADMIN" || profile?.role === "MANAGER"
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -109,29 +112,31 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
       {/* Chart + quick actions */}
       <div className="grid gap-6 lg:grid-cols-3">
         <ForecastChart />
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <button type="button" onClick={() => onNavigate?.("scheduler")}
-              className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
-              Generate Weekly Schedule
-            </button>
-            <button type="button" onClick={() => onNavigate?.("shortage")}
-              className="w-full rounded-lg bg-secondary px-4 py-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80">
-              View Shortage Alerts
-            </button>
-            <button type="button" onClick={() => onNavigate?.("staff")}
-              className="w-full rounded-lg bg-secondary px-4 py-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80">
-              Staff Directory
-            </button>
-            <button type="button" onClick={() => onNavigate?.("taxi")}
-              className="w-full rounded-lg bg-secondary px-4 py-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80">
-              Transport Requests
-            </button>
-          </CardContent>
-        </Card>
+        {isManagerOrAdmin && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <button type="button" onClick={() => onNavigate?.("scheduler")}
+                className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
+                Generate Weekly Schedule
+              </button>
+              <button type="button" onClick={() => onNavigate?.("shortage")}
+                className="w-full rounded-lg bg-secondary px-4 py-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80">
+                View Shortage Alerts
+              </button>
+              <button type="button" onClick={() => onNavigate?.("staff")}
+                className="w-full rounded-lg bg-secondary px-4 py-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80">
+                Staff Directory
+              </button>
+              <button type="button" onClick={() => onNavigate?.("taxi")}
+                className="w-full rounded-lg bg-secondary px-4 py-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80">
+                Transport Requests
+              </button>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <TaskBoard />

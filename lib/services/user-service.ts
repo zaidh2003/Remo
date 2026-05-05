@@ -106,16 +106,18 @@ export async function createShortageAlert(
 
 export async function getOpenShortageAlerts(): Promise<ShortageAlert[]> {
   const snap = await getDocs(
-    query(collection(db, "shortageAlerts"), where("status", "==", "OPEN"), orderBy("createdAt", "desc"))
+    query(collection(db, "shortageAlerts"), where("status", "==", "OPEN"))
   );
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as ShortageAlert));
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() } as ShortageAlert))
+    .sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
 }
 
 export async function getAllShortageAlerts(): Promise<ShortageAlert[]> {
-  const snap = await getDocs(
-    query(collection(db, "shortageAlerts"), orderBy("createdAt", "desc"))
-  );
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as ShortageAlert));
+  const snap = await getDocs(collection(db, "shortageAlerts"));
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() } as ShortageAlert))
+    .sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
 }
 
 export async function updateShortageAlertStatus(

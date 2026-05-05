@@ -48,12 +48,10 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Shortage alerts: managers/admins create; all authenticated users read; managers update status
+    // Shortage alerts: managers/admins create; employees can create for sick leave; all read; managers update status
     match /shortageAlerts/{alertId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ["ADMIN", "MANAGER"];
+      allow create: if request.auth != null;
       allow update: if request.auth != null
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ["ADMIN", "MANAGER"];
