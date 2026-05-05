@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { ChefHat, Mail, Lock, Eye, EyeOff, Loader, Globe, User, Phone, Briefcase } from "lucide-react"
+import Image from "next/image"
+import { Mail, Lock, Eye, EyeOff, Loader, Globe, User, Phone, Briefcase } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import WavyBackground from "@/components/ui/wavy-background"
 import { auth, googleProvider } from "@/lib/firebase"
@@ -133,8 +134,8 @@ export function LoginPage() {
       <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between px-6 lg:px-12 py-12 gap-16 lg:gap-32 z-10 min-h-screen">
         {/* Left — branding */}
         <div className="flex flex-col items-center lg:items-start text-center lg:text-left max-w-xl p-8 rounded-3xl bg-black/20 backdrop-blur-md border border-white/10 shadow-2xl">
-          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-blue-600 shadow-lg shadow-primary/30 mb-6">
-            <ChefHat className="h-12 w-12 text-white" />
+          <div className="flex h-20 w-20 items-center justify-center rounded-2xl overflow-hidden shadow-lg shadow-primary/30 mb-6">
+            <Image src="/Logo.jpg" alt="REMO Logo" width={80} height={80} className="object-cover" />
           </div>
           <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-4 tracking-tight drop-shadow-lg">
             {t.welcome}{" "}
@@ -169,7 +170,7 @@ export function LoginPage() {
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         placeholder="John Smith"
-                        className="w-full bg-sidebar border border-border rounded-lg pl-9 pr-4 py-2.5 outline-none focus:border-primary transition-colors text-sm"
+                        className="w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-border rounded-lg pl-9 pr-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
                       />
                     </div>
                   </div>
@@ -184,7 +185,7 @@ export function LoginPage() {
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
                           placeholder="+1 555 0100"
-                          className="w-full bg-sidebar border border-border rounded-lg pl-9 pr-3 py-2.5 outline-none focus:border-primary transition-colors text-sm"
+                          className="w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-border rounded-lg pl-9 pr-3 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
                         />
                       </div>
                     </div>
@@ -197,7 +198,7 @@ export function LoginPage() {
                           value={position}
                           onChange={(e) => setPosition(e.target.value)}
                           placeholder="Head Chef"
-                          className="w-full bg-sidebar border border-border rounded-lg pl-9 pr-3 py-2.5 outline-none focus:border-primary transition-colors text-sm"
+                          className="w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-border rounded-lg pl-9 pr-3 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
                         />
                       </div>
                     </div>
@@ -215,7 +216,7 @@ export function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@restaurant.com"
-                    className="w-full bg-sidebar border border-border rounded-lg pl-9 pr-4 py-2.5 outline-none focus:border-primary transition-colors text-sm"
+                    className="w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-border rounded-lg pl-9 pr-4 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
                   />
                 </div>
               </div>
@@ -230,7 +231,7 @@ export function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-sidebar border border-border rounded-lg pl-9 pr-10 py-2.5 outline-none focus:border-primary transition-colors text-sm"
+                    className="w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-border rounded-lg pl-9 pr-10 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
                   />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2">
                     {showPassword

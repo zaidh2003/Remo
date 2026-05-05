@@ -1,10 +1,11 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { useAuth } from "@/components/providers/auth-provider"
 import { useEffect } from "react"
 import {
-  ChefHat, Calendar, AlertTriangle, Car, Users, Sparkles,
+  Calendar, AlertTriangle, Car, Users, Sparkles,
   Bell, Globe, Shield, ArrowRight, CheckCircle, Star,
   Clock, TrendingUp, Zap, BarChart3, MessageSquare,
 } from "lucide-react"
@@ -125,33 +126,39 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
 
-      {/* ── Nav ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 h-16 bg-slate-950/80 backdrop-blur-xl border-b border-white/5">
-        <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-            <ChefHat className="h-5 w-5 text-white" />
+      {/* ── Floating Nav ── */}
+      <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-max">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex items-center justify-center gap-4 md:gap-6 bg-slate-900/90 dark:bg-black/70 backdrop-blur-2xl rounded-full px-6 md:px-8 py-3 shadow-2xl border border-white/10 hover:border-white/20 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg overflow-hidden shadow-lg">
+              <Image src="/Logo.jpg" alt="REMO" width={32} height={32} className="object-cover w-full h-full" />
+            </div>
+            <span className="text-sm md:text-base font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">REMO</span>
           </div>
-          <span className="text-lg font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">REMO</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.push("/?login")}
-            className="text-sm text-slate-400 hover:text-white transition-colors px-4 py-2"
-          >
-            Sign In
-          </button>
-          <button
-            onClick={() => router.push("/?login")}
-            className="text-sm font-semibold bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90 text-white px-5 py-2 rounded-full transition-opacity"
-          >
-            Get Started
-          </button>
-        </div>
+          
+          <div className="hidden sm:block w-px h-6 bg-white/10" />
+          
+          <div className="flex items-center gap-2 md:gap-3">
+            <motion.button
+              onClick={() => router.push("/?login")}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="text-xs md:text-sm text-slate-300 hover:text-white transition-colors px-3 md:px-4 py-2 rounded-full hover:bg-white/5"
+            >
+              Sign In
+            </motion.button>
+          </div>
+        </motion.div>
       </nav>
 
       {/* ── Hero ── */}
       <WavyBackground className="min-h-screen">
-      <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-16">
+      <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-8">
         {/* Background glow */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px]" />
@@ -184,12 +191,6 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button
-              onClick={() => router.push("/?login")}
-              className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90 text-white font-bold px-8 py-4 rounded-2xl text-base shadow-2xl shadow-blue-500/30 transition-opacity"
-            >
-              Start for Free <ArrowRight className="h-5 w-5" />
-            </button>
             <button
               onClick={() => router.push("/?login")}
               className="flex items-center gap-2 border border-white/10 hover:border-white/20 text-white font-semibold px-8 py-4 rounded-2xl text-base transition-colors bg-white/5"
@@ -370,9 +371,9 @@ export default function LandingPage() {
           </p>
           <button
             onClick={() => router.push("/?login")}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90 text-white font-bold px-10 py-4 rounded-2xl text-lg shadow-2xl shadow-blue-500/30 transition-opacity"
+            className="inline-flex items-center gap-2 border border-white/20 hover:border-white/40 text-white font-semibold px-10 py-4 rounded-2xl text-lg transition-colors"
           >
-            Get Started Free <ArrowRight className="h-5 w-5" />
+            Sign In <ArrowRight className="h-5 w-5" />
           </button>
         </motion.div>
       </section>
@@ -381,8 +382,8 @@ export default function LandingPage() {
       <footer className="border-t border-white/5 py-10 px-6">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <ChefHat className="h-4 w-4 text-white" />
+            <div className="h-8 w-8 rounded-xl overflow-hidden">
+              <Image src="/Logo.jpg" alt="REMO" width={32} height={32} className="object-cover w-full h-full" />
             </div>
             <span className="font-bold text-white">REMO</span>
             <span className="text-slate-600 text-sm">Smart Restaurant Management</span>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { Navbar } from "./navbar"
 import { DashboardOverview } from "./dashboard-overview"
 import { WeeklyScheduler } from "./weekly-scheduler"
@@ -11,52 +12,22 @@ import { InventoryManagement } from "./inventory-management"
 import { RoleManagement } from "@/components/auth/role-management"
 import { UserManagement } from "@/components/dashboard/user-management"
 import { ShortageAlerts } from "@/components/dashboard/shortage-alerts"
-import { initialShifts } from "@/lib/mock-data"
-import type { Shift } from "@/lib/types"
 import type { UserProfile } from "@/lib/services/user-service"
-import { ChefHat, LogOut, Sun, Moon, Bell } from "lucide-react"
-import { optimizeSchedule } from "@/lib/services/groq-service"
-import { staffData } from "@/lib/mock-data"
+import { LogOut, Sun, Moon } from "lucide-react"
 import { ProfilePanel } from "./profile-panel"
+import { NotificationBell } from "./notification-bell"
 
 export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile | null }) {
   const [activeTab, setActiveTab] = useState("dashboard")
-  const [shifts, setShifts] = useState<Shift[]>(initialShifts)
-  const [isOptimizing, setIsOptimizing] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(true)
   const [showProfile, setShowProfile] = useState(false)
-
-  const handleOptimize = async () => {
-    setIsOptimizing(true)
-    try {
-      const optimized = await optimizeSchedule(shifts, staffData)
-      // Groq returns updated status fields; merge back safely
-      const merged = shifts.map((s) => {
-        const updated = optimized.find((o) => o.id === s.id)
-        return updated ? { ...s, status: updated.status } : s
-      }) as Shift[]
-      setShifts(merged)
-    } catch (err) {
-      console.error("Groq optimize failed:", err)
-      // Fallback: mark all as optimal
-      setShifts(shifts.map((s) => ({ ...s, status: "optimal" as const })))
-    } finally {
-      setIsOptimizing(false)
-    }
-  }
 
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
-        return <DashboardOverview />
+        return <DashboardOverview onNavigate={setActiveTab} />
       case "scheduler":
-        return (
-          <WeeklyScheduler
-            shifts={shifts}
-            isOptimizing={isOptimizing}
-            onOptimize={handleOptimize}
-          />
-        )
+        return <WeeklyScheduler />
       case "emergencies":
         return <EmergencyBoard />
       case "taxi":
@@ -83,7 +54,7 @@ export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile 
           </div>
         )
       default:
-        return <DashboardOverview />
+        return <DashboardOverview onNavigate={setActiveTab} />
     }
   }
 
@@ -107,8 +78,8 @@ export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile 
       <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 max-w-screen-2xl items-center justify-between px-4 md:px-8 mx-auto">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-lg shadow-primary/20">
-              <ChefHat className="h-6 w-6 text-white" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden shadow-lg shadow-primary/20">
+              <Image src="/Logo.jpg" alt="REMO Logo" width={40} height={40} className="object-cover" />
             </div>
             <div className="hidden sm:block">
               <h1 className="text-lg font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">REMO</h1>
@@ -120,10 +91,7 @@ export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile 
             <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 rounded-full hover:bg-muted transition-colors relative isolate">
               {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
-            <button className="p-2 rounded-full hover:bg-muted transition-colors relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1.5 right-2 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-background" />
-            </button>
+            <NotificationBell />
             <div 
               onClick={() => setShowProfile(true)}
               className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shadow-md cursor-pointer hover:opacity-90 transition-opacity"

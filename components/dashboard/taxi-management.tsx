@@ -5,7 +5,6 @@ import { PhoneCall, MapPin, CheckCircle2, Clock, XCircle, ShieldCheck, ShieldX, 
 import { subscribeToTaxiRequests, updateTaxiStatus, requestTaxi } from "@/lib/services/taxi-service"
 import { useAuth } from "@/components/providers/auth-provider"
 import { checkTaxiEligibility } from "@/lib/services/groq-service"
-import { initialShifts } from "@/lib/mock-data"
 import type { TaxiRequest } from "@/lib/types"
 
 export function TaxiManagement() {
@@ -32,11 +31,46 @@ export function TaxiManagement() {
     setCheckingEligibility(true);
     setEligibilityMsg("");
     try {
-      // Ask Groq to verify policy before submitting
-      const staffShifts = initialShifts.filter((s) => s.staffId === profile.uid);
+      // Fetch the employee's REAL shifts from Firestore shortage responses
+      // to check if they accepted an emergency shift today
+      const today = new Date().toISOString().split("T")[0];
+      const { getDocs, collection, query, where } = await import("firebase/firestore");
+      const { db } = await import("@/lib/firebase");
+
+      // Check accepted shortage responses today (emergency shift acceptance)
+      const responsesSnap = await getDocs(
+        query(
+          collection(db, "shortageResponses"),
+          where("employeeUid", "==", profile.uid),
+          where("status", "==", "ACCEPTED")
+        )
+      );
+
+      // Build a synthetic shift list from accepted shortage alerts today
+      const acceptedAlertIds = responsesSnap.docs.map((d) => d.data().alertId);
+      const realShifts: any[] = [];
+
+      for (const alertId of acceptedAlertIds) {
+        const { getDoc, doc } = await import("firebase/firestore");
+        const alertSnap = await getDoc(doc(db, "shortageAlerts", alertId));
+        if (alertSnap.exists()) {
+          const alert = alertSnap.data();
+          if (alert.date === today) {
+            realShifts.push({
+              id: alertId,
+              staffId: profile.uid,
+              isEmergency: true,
+              startTime: alert.startTime,
+              endTime: alert.endTime,
+              day: today,
+            });
+          }
+        }
+      }
+
       const { eligible, reason } = await checkTaxiEligibility(
         { type, staffId: profile.uid },
-        staffShifts
+        realShifts
       );
       if (!eligible) {
         setEligibilityMsg(`❌ ${reason}`);

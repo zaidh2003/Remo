@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
@@ -7,7 +8,6 @@ import {
   TrendingUp,
   Users,
   Package,
-  ChefHat,
   TrendingDown,
   ChevronRight,
 } from "lucide-react"
