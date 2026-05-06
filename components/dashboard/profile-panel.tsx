@@ -270,11 +270,13 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
+      // Don't close the profile panel while the sick leave modal is open
+      if (showSickLeave) return
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) onClose()
     }
     document.addEventListener("mousedown", handler)
     return () => document.removeEventListener("mousedown", handler)
-  }, [onClose])
+  }, [onClose, showSickLeave])
 
   const handleSave = async () => {
     if (!profile) return

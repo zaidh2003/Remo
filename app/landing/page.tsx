@@ -118,7 +118,7 @@ export default function LandingPage() {
   const router = useRouter()
   const { user, isLoading } = useAuth()
 
-  // If already logged in, skip landing
+  // If already logged in, go to dashboard — but only on initial load, not after logout
   useEffect(() => {
     if (!isLoading && user) router.replace("/")
   }, [user, isLoading, router])

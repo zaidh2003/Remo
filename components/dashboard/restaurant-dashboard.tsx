@@ -13,13 +13,12 @@ import { RoleManagement } from "@/components/auth/role-management"
 import { UserManagement } from "@/components/dashboard/user-management"
 import { ShortageAlerts } from "@/components/dashboard/shortage-alerts"
 import type { UserProfile } from "@/lib/services/user-service"
-import { LogOut, Sun, Moon } from "lucide-react"
+import { LogOut } from "lucide-react"
 import { ProfilePanel } from "./profile-panel"
 import { NotificationBell } from "./notification-bell"
 
 export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile | null }) {
   const [activeTab, setActiveTab] = useState("dashboard")
-  const [isDarkMode, setIsDarkMode] = useState(true)
   const [showProfile, setShowProfile] = useState(false)
 
   const renderContent = () => {
@@ -88,9 +87,6 @@ export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile 
           </div>
           
           <div className="flex items-center gap-4">
-            <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 rounded-full hover:bg-muted transition-colors relative isolate">
-              {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </button>
             <NotificationBell />
             <div 
               onClick={() => setShowProfile(true)}

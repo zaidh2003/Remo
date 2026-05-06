@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { RestaurantDashboard } from "@/components/dashboard/restaurant-dashboard"
 import { LoginPage } from "@/components/auth/login-page"
@@ -10,11 +10,17 @@ import { SiteLoader } from "@/components/ui/loader"
 export default function Page() {
   const { user, profile, isLoading } = useAuth()
   const router = useRouter()
+  const hasBeenLoggedIn = useRef(false)
 
-  // Redirect unauthenticated visitors to landing page
+  // Track if the user was ever logged in this session
   useEffect(() => {
-    if (!isLoading && !user) {
-      // Check if they came from the landing page CTA (has ?login param) — if so show login directly
+    if (user) hasBeenLoggedIn.current = true
+  }, [user])
+
+  // Only redirect to landing for fresh visitors who have never been logged in
+  // (i.e. not after a logout)
+  useEffect(() => {
+    if (!isLoading && !user && !hasBeenLoggedIn.current) {
       const params = new URLSearchParams(window.location.search)
       if (!params.has("login")) {
         router.replace("/landing")
@@ -26,6 +32,7 @@ export default function Page() {
     return <SiteLoader />
   }
 
+  // After logout or with ?login param — show login form directly
   if (!user) {
     return <LoginPage />
   }
