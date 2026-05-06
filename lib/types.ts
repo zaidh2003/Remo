@@ -3,10 +3,19 @@
 export type AppRole = "ADMIN" | "MANAGER" | "EMPLOYEE"
 export type WorkZone = "Meat" | "Salad" | "Grill" | "Fries" | "Dishwashing" | "Bar" | "Waiter" | "Kitchen" | "Host"
 export type SkillLevel = "Beginner" | "Intermediate" | "Expert"
+export type AppLanguage = "en" | "ru" | "lt"
 
 export interface WorkerSkill {
   zone: WorkZone
   level: SkillLevel
+}
+
+export interface Branch {
+  id: string
+  name: string
+  address?: string
+  managerId?: string
+  createdAt: any
 }
 
 export type ShortageAlertStatus = "OPEN" | "FILLED" | "CANCELLED"
@@ -107,4 +116,19 @@ export interface InventoryItem {
   unit: string
   minStock: number
   status: "in-stock" | "low" | "critical"
+}
+
+export type SwapRequestStatus = "PENDING" | "APPROVED_BY_TARGET" | "APPROVED_BY_MANAGER" | "REJECTED"
+
+export interface SwapRequest {
+  id: string
+  requesterId: string
+  requesterName: string
+  requesterShiftId: string
+  targetId: string
+  targetName: string
+  targetShiftId: string
+  status: SwapRequestStatus
+  createdAt: any
+  approvedAt?: any
 }

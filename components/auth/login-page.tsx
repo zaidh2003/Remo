@@ -8,6 +8,8 @@ import WavyBackground from "@/components/ui/wavy-background"
 import { auth, googleProvider } from "@/lib/firebase"
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth"
 import { createUserProfileIfNeeded } from "@/lib/services/user-service"
+import { useLang } from "@/components/providers/language-provider"
+import type { AppLanguage } from "@/lib/types"
 
 type Language = "en" | "ru" | "lt"
 
@@ -54,8 +56,28 @@ const translations = {
 }
 
 export function LoginPage() {
-  const [lang, setLang] = useState<Language>("en")
-  const t = translations[lang]
+  const { lang, setLang, t: lt } = useLang()
+  // Local translations for login page (extends shared ones)
+  const t = {
+    ...lt,
+    welcome: lang === "en" ? "Welcome to" : lang === "ru" ? "Добро пожаловать в" : "Sveiki atvykę į",
+    description: lang === "en"
+      ? "The all-in-one smart restaurant management system. Automate scheduling, handle emergencies instantly, and coordinate transport across branches."
+      : lang === "ru"
+      ? "Умная система управления рестораном «все в одном»."
+      : "Ismani restoranu valdymo sistema 'viskas viename'.",
+    learnMore: lang === "en" ? "Learn More" : lang === "ru" ? "Узнать больше" : "Suzinoti daugiau",
+    signIn: lang === "en" ? "Sign In" : lang === "ru" ? "Войти" : "Prisijungti",
+    signUp: lang === "en" ? "Sign Up" : lang === "ru" ? "Регистрация" : "Registruotis",
+    accessDash: lang === "en" ? "Access your dashboard" : lang === "ru" ? "Доступ к панели управления" : "Prieiga prie valdymo skydelio",
+    remember: lang === "en" ? "Remember me" : lang === "ru" ? "Запомнить меня" : "Prisiminti mane",
+    forgot: lang === "en" ? "Forgot password?" : lang === "ru" ? "Забыли пароль?" : "Pamirsote slaptazodi?",
+    signingIn: lang === "en" ? "Signing in..." : lang === "ru" ? "Вход..." : "Prisijungiama...",
+    signingUp: lang === "en" ? "Signing up..." : lang === "ru" ? "Регистрация..." : "Registruojamasi...",
+    continueWith: lang === "en" ? "Or continue with" : lang === "ru" ? "Или продолжите через" : "Arba teskite su",
+    noAccount: lang === "en" ? "Don't have an account?" : lang === "ru" ? "Нет аккаунта?" : "Neturite paskyros?",
+    haveAccount: lang === "en" ? "Already have an account?" : lang === "ru" ? "Уже есть аккаунт?" : "Jau turite paskyra?",
+  }
 
   const [isLoginMode, setIsLoginMode] = useState(true)
   const [email, setEmail]       = useState("")
@@ -123,7 +145,7 @@ export function LoginPage() {
         <select
           className="bg-black/30 text-white border border-white/20 rounded-lg px-2 py-1 text-sm backdrop-blur-sm outline-none"
           value={lang}
-          onChange={(e) => setLang(e.target.value as Language)}
+          onChange={(e) => setLang(e.target.value as AppLanguage)}
         >
           <option className="text-black" value="en">EN</option>
           <option className="text-black" value="ru">RU</option>
@@ -134,8 +156,8 @@ export function LoginPage() {
       <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between px-6 lg:px-12 py-12 gap-16 lg:gap-32 z-10 min-h-screen">
         {/* Left — branding */}
         <div className="flex flex-col items-center lg:items-start text-center lg:text-left max-w-xl p-8 rounded-3xl bg-black/20 backdrop-blur-md border border-white/10 shadow-2xl">
-          <div className="flex h-20 w-20 items-center justify-center rounded-2xl overflow-hidden shadow-lg shadow-primary/30 mb-6">
-            <Image src="/Logo.jpg" alt="REMO Logo" width={80} height={80} className="object-cover" />
+          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-blue-600 shadow-lg shadow-primary/30 mb-6">
+            <ChefHat className="h-12 w-12 text-white" />
           </div>
           <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-4 tracking-tight drop-shadow-lg">
             {t.welcome}{" "}

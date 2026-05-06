@@ -1,6 +1,7 @@
-import { doc, getDoc, setDoc, updateDoc, collection, getDocs, addDoc, query, orderBy, where, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, collection, getDocs, addDoc, query, orderBy, where, serverTimestamp, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { AppRole, WorkZone, WorkerSkill, ShortageAlert, ShortageResponse, SickLeaveType } from "@/lib/types";
+import { getShiftsForEmployee, sendNotification } from "./data-service";
 
 export interface UserProfile {
   uid: string;
@@ -113,11 +114,19 @@ export async function getOpenShortageAlerts(): Promise<ShortageAlert[]> {
     .sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
 }
 
-export async function getAllShortageAlerts(): Promise<ShortageAlert[]> {
+export async function getAllShortageAlerts(userProfile: UserProfile): Promise<ShortageAlert[]> {
   const snap = await getDocs(collection(db, "shortageAlerts"));
-  return snap.docs
+  const allAlerts = snap.docs
     .map((d) => ({ id: d.id, ...d.data() } as ShortageAlert))
     .sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
+  
+  // Admin users see all alerts
+  if (userProfile.role === "ADMIN") {
+    return allAlerts;
+  }
+  
+  // Non-admin users only see alerts from their assigned branch
+  return allAlerts.filter((alert) => alert.branchId === userProfile.branch);
 }
 
 export async function updateShortageAlertStatus(
@@ -180,23 +189,51 @@ export async function reportSickLeave(
   endTime: string,
   note: string
 ): Promise<string> {
+  // 1. Calculate current time automatically
+  const now = new Date();
+  const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  
+  // 2. Find all shifts for this employee in the sick leave period
+  const shifts = await getShiftsForEmployee(employee.uid, date, startTime, endTime);
+  
+  // 3. Use batch write to mark all shifts as vacant
+  if (shifts.length > 0) {
+    const batch = writeBatch(db);
+    shifts.forEach((shift) => {
+      const shiftRef = doc(db, "shifts", shift.id);
+      batch.update(shiftRef, {
+        staffId: null,
+        staffName: null,
+        status: "vacant"
+      });
+    });
+    await batch.commit();
+  }
+  
+  // 4. Create shortage alert with calculated time window
   const priority = sickLeaveType === "SUDDEN_ILLNESS" ? "HIGH" : "NORMAL";
   const reason = sickLeaveType === "SUDDEN_ILLNESS"
     ? `🚨 Sudden illness — ${employee.name || employee.email}`
     : `Sick leave — ${note || employee.name || employee.email}`;
 
-  return createShortageAlert({
+  const alertId = await createShortageAlert({
     createdBy: employee.uid,
     createdByName: employee.name || employee.email,
     branchId: employee.branch || "main",
     branchName: employee.branch || "Main Branch",
     zone,
     date,
-    startTime,
+    startTime: currentTime,  // Use calculated current time
     endTime,
     reason,
     priority,
     sickLeaveType,
     status: "OPEN",
   });
+  
+  // 5. Send notification to managers about the sick leave
+  const message = `${employee.name || employee.email} reported ${sickLeaveType === "SUDDEN_ILLNESS" ? "sudden illness" : "sick leave"} for ${zone} on ${date} from ${currentTime} to ${endTime}. ${shifts.length} shift(s) marked as vacant.`;
+  await sendNotification("all", "🚨 Sick Leave Reported", message, "shortage");
+  
+  return alertId;
 }

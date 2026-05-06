@@ -1,11 +1,10 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import Image from "next/image"
 import { useAuth } from "@/components/providers/auth-provider"
 import { useEffect } from "react"
 import {
-  Calendar, AlertTriangle, Car, Users, Sparkles,
+  ChefHat, Calendar, AlertTriangle, Car, Users, Sparkles,
   Bell, Globe, Shield, ArrowRight, CheckCircle, Star,
   Clock, TrendingUp, Zap, BarChart3, MessageSquare,
 } from "lucide-react"
@@ -118,7 +117,7 @@ export default function LandingPage() {
   const router = useRouter()
   const { user, isLoading } = useAuth()
 
-  // If already logged in, go to dashboard — but only on initial load, not after logout
+  // If already logged in, skip landing
   useEffect(() => {
     if (!isLoading && user) router.replace("/")
   }, [user, isLoading, router])
@@ -135,8 +134,8 @@ export default function LandingPage() {
           className="flex items-center justify-center gap-4 md:gap-6 bg-slate-900/90 dark:bg-black/70 backdrop-blur-2xl rounded-full px-6 md:px-8 py-3 shadow-2xl border border-white/10 hover:border-white/20 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg overflow-hidden shadow-lg">
-              <Image src="/Logo.jpg" alt="REMO" width={32} height={32} className="object-cover w-full h-full" />
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+              <ChefHat className="h-4 w-4 text-white" />
             </div>
             <span className="text-sm md:text-base font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">REMO</span>
           </div>
@@ -382,8 +381,8 @@ export default function LandingPage() {
       <footer className="border-t border-white/5 py-10 px-6">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl overflow-hidden">
-              <Image src="/Logo.jpg" alt="REMO" width={32} height={32} className="object-cover w-full h-full" />
+            <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <ChefHat className="h-4 w-4 text-white" />
             </div>
             <span className="font-bold text-white">REMO</span>
             <span className="text-slate-600 text-sm">Smart Restaurant Management</span>

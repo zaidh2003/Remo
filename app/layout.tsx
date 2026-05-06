@@ -30,6 +30,7 @@ export const metadata: Metadata = {
 }
 
 import { AuthProvider } from '@/components/providers/auth-provider';
+import { LanguageProvider } from '@/components/providers/language-provider';
 
 export default function RootLayout({
   children,
@@ -39,9 +40,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-background">
       <body className="font-sans antialiased">
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </LanguageProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

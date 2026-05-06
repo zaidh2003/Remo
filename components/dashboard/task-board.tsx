@@ -146,7 +146,9 @@ export function TaskBoard() {
   const isManagerOrAdmin = profile?.role === "ADMIN" || profile?.role === "MANAGER"
 
   useEffect(() => {
-    const unsub = subscribeToTasks(setTasks)
+    const unsub = subscribeToTasks((incoming) => {
+      setTasks(incoming)
+    })
     return () => unsub()
   }, [])
 

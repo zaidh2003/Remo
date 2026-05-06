@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { LayoutDashboard, Calendar, AlertTriangle, CarFront, Users, Settings, UserCog, BellRing } from "lucide-react";
+import { LayoutDashboard, Calendar, AlertTriangle, CarFront, Users, Settings, UserCog, BellRing, Building2, ArrowRightLeft } from "lucide-react";
 
 interface NavItem {
   id: string;
@@ -15,10 +15,12 @@ const items: NavItem[] = [
   { id: "dashboard",  icon: <LayoutDashboard size={24} />, label: "Dashboard" },
   { id: "scheduler",  icon: <Calendar size={24} />,        label: "Scheduler",  roles: ["ADMIN", "MANAGER"] },
   { id: "emergencies",icon: <AlertTriangle size={24} />,   label: "Emergencies" },
+  { id: "swaps",      icon: <ArrowRightLeft size={24} />,  label: "Swap Requests" },
   { id: "shortage",   icon: <BellRing size={24} />,        label: "Shortage" },
   { id: "taxi",       icon: <CarFront size={24} />,        label: "Transport" },
   { id: "staff",      icon: <Users size={24} />,           label: "Staff",      roles: ["ADMIN", "MANAGER"] },
   { id: "users",      icon: <UserCog size={24} />,         label: "Users",      roles: ["ADMIN", "MANAGER"] },
+  { id: "branches",   icon: <Building2 size={24} />,      label: "Branches",   roles: ["ADMIN"] },
   { id: "settings",   icon: <Settings size={24} />,        label: "Settings",   roles: ["ADMIN"] },
 ];
 

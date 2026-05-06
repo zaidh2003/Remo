@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { Shift } from "@/lib/types"
 import { weekDays } from "@/lib/mock-data"
-import { Sparkles, Loader2, AlertTriangle, CheckCircle, Clock, Plus, X, Trash2, RefreshCw } from "lucide-react"
-import { subscribeToShifts, saveShift, deleteShift } from "@/lib/services/data-service"
+import { Sparkles, Loader2, AlertTriangle, CheckCircle, Clock, Plus, X, Trash2, RefreshCw, Edit } from "lucide-react"
+import { subscribeToShifts, saveShift, deleteShift, updateShift as _updateShift, sendNotification, notifyShiftChange } from "@/lib/services/data-service"
 import { getAllUsers, type UserProfile } from "@/lib/services/user-service"
 import { useAuth } from "@/components/providers/auth-provider"
 import { optimizeSchedule } from "@/lib/services/groq-service"
@@ -52,7 +52,7 @@ function AddShiftModal({
     }
     setSaving(true); setError("")
     try {
-      await saveShift({
+      const shiftId = await saveShift({
         staffId,
         staffName: selectedStaff?.name || selectedStaff?.email || "Unknown",
         branchId: selectedStaff?.branch || "main",
@@ -61,6 +61,23 @@ function AddShiftModal({
         status: "upcoming",
         weekLabel,
       })
+      // Notify the assigned employee
+      if (staffId) {
+        const newShift = {
+          id: shiftId,
+          staffId,
+          staffName: selectedStaff?.name || selectedStaff?.email || "Unknown",
+          branchId: selectedStaff?.branch || "main",
+          zone, 
+          day, 
+          startTime, 
+          endTime,
+          isEmergency: false,
+          status: "upcoming" as const,
+          weekLabel,
+        }
+        await notifyShiftChange(staffId, newShift, "assigned")
+      }
       onSaved()
     } catch (e: any) { setError(e.message) }
     finally { setSaving(false) }
@@ -130,9 +147,133 @@ function AddShiftModal({
   )
 }
 
+// ── Edit Shift Modal ──────────────────────────────────────────────────────────
+function EditShiftModal({
+  shift, staff, onClose, onSaved,
+}: {
+  shift: Shift; staff: UserProfile[]
+  onClose: () => void; onSaved: () => void
+}) {
+  const [staffId, setStaffId]   = useState(shift.staffId || "")
+  const [zone, setZone]         = useState(shift.zone)
+  const [startTime, setStart]   = useState(shift.startTime)
+  const [endTime, setEnd]       = useState(shift.endTime)
+  const [saving, setSaving]     = useState(false)
+  const [error, setError]       = useState("")
+
+  const selectedStaff = staff.find((s) => s.uid === staffId)
+
+  const handleSave = async () => {
+    if (!staffId || !zone || !startTime || !endTime) {
+      setError("Fill in all fields."); return
+    }
+    setSaving(true); setError("")
+    try {
+      // Detect what changed
+      const staffChanged = staffId !== shift.staffId
+      const timeChanged = startTime !== shift.startTime || endTime !== shift.endTime
+      
+      // Update the shift
+      await _updateShift(shift.id, {
+        staffId,
+        staffName: selectedStaff?.name || selectedStaff?.email || "Unknown",
+        zone,
+        startTime,
+        endTime,
+      })
+      
+      // Send notifications based on what changed
+      if (staffChanged) {
+        // Notify old staff member if they were assigned
+        if (shift.staffId) {
+          await notifyShiftChange(shift.staffId, shift, "removed")
+        }
+        // Notify new staff member
+        if (staffId) {
+          const updatedShift = { ...shift, staffId, zone, startTime, endTime }
+          await notifyShiftChange(staffId, updatedShift, "assigned")
+        }
+      } else if (timeChanged && staffId) {
+        // Same staff, but time changed
+        const updatedShift = { ...shift, zone, startTime, endTime }
+        await notifyShiftChange(staffId, updatedShift, "modified")
+      }
+      
+      onSaved()
+    } catch (e: any) { setError(e.message) }
+    finally { setSaving(false) }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between">
+          <h3 className="font-bold text-base">Edit Shift — {shift.day}</h3>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted"><X className="h-4 w-4" /></button>
+        </div>
+
+        <div className="space-y-3">
+          {/* Staff picker */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Staff Member</label>
+            <select value={staffId} onChange={(e) => setStaffId(e.target.value)}
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary">
+              <option value="">Select staff…</option>
+              {staff.map((s) => (
+                <option key={s.uid} value={s.uid}>{s.name || s.email} ({s.role})</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Zone */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Zone</label>
+            <select value={zone} onChange={(e) => setZone(e.target.value)}
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary">
+              {ZONES.map((z) => <option key={z} value={z}>{z}</option>)}
+            </select>
+          </div>
+
+          {/* Times */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Start</label>
+              <input type="time" value={startTime} onChange={(e) => setStart(e.target.value)}
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">End</label>
+              <input type="time" value={endTime} onChange={(e) => setEnd(e.target.value)}
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary" />
+            </div>
+          </div>
+        </div>
+
+        {error && <p className="text-sm text-destructive">{error}</p>}
+
+        <div className="flex gap-3">
+          <button onClick={onClose}
+            className="flex-1 py-2.5 rounded-xl border border-border hover:bg-muted text-sm font-medium transition-colors">
+            Cancel
+          </button>
+          <button onClick={handleSave} disabled={saving}
+            className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold py-2.5 rounded-xl text-sm disabled:opacity-60 hover:bg-primary/90 transition-colors">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Shift Card ────────────────────────────────────────────────────────────────
-function ShiftCard({ shift, canEdit, onDelete }: {
-  shift: Shift; canEdit: boolean; onDelete: (id: string) => void
+function ShiftCard({ shift, canEdit, onDelete, onMarkUnavailable, onEdit }: {
+  shift: Shift; canEdit: boolean
+  onDelete: (id: string) => void
+  onMarkUnavailable: (shift: Shift) => void
+  onEdit: (shift: Shift) => void
 }) {
   const cfg = statusConfig[shift.status] ?? statusConfig.upcoming
   const Icon = cfg.icon
@@ -147,10 +288,26 @@ function ShiftCard({ shift, canEdit, onDelete }: {
         <div className="flex items-center gap-1">
           <Icon className="h-3.5 w-3.5 shrink-0" />
           {canEdit && (
-            <button onClick={() => onDelete(shift.id)}
-              className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-destructive/20 text-destructive">
-              <Trash2 className="h-3 w-3" />
-            </button>
+            <>
+              <button
+                onClick={() => onEdit(shift)}
+                title="Edit shift"
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-primary/20 text-primary"
+              >
+                <Edit className="h-3 w-3" />
+              </button>
+              <button
+                onClick={() => onMarkUnavailable(shift)}
+                title="Mark worker unavailable"
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-warning/20 text-warning-foreground"
+              >
+                <AlertTriangle className="h-3 w-3" />
+              </button>
+              <button onClick={() => onDelete(shift.id)}
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-destructive/20 text-destructive">
+                <Trash2 className="h-3 w-3" />
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -168,6 +325,7 @@ export function WeeklyScheduler() {
   const [staff, setStaff]           = useState<UserProfile[]>([])
   const [isOptimizing, setOptimizing] = useState(false)
   const [addingDay, setAddingDay]   = useState<string | null>(null)
+  const [editingShift, setEditingShift] = useState<Shift | null>(null)
   const [weekLabel]                 = useState(getWeekLabel())
   const isManagerOrAdmin = profile?.role === "ADMIN" || profile?.role === "MANAGER"
 
@@ -186,6 +344,39 @@ export function WeeklyScheduler() {
     await deleteShift(id)
   }
 
+  const handleMarkUnavailable = async (shift: Shift) => {
+    // Store the original staffId before marking as vacant
+    const originalStaffId = shift.staffId
+    
+    // Mark shift as vacant
+    await _updateShift(shift.id, { status: "vacant", staffId: null, staffName: null })
+    
+    // Notify the worker being removed from the shift
+    if (originalStaffId) {
+      await notifyShiftChange(originalStaffId, shift, "removed")
+    }
+    
+    // Calculate remaining time and create shortage alert
+    const now = new Date()
+    const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
+    const { createShortageAlert } = await import("@/lib/services/user-service")
+    await createShortageAlert({
+      createdBy: profile?.uid ?? "system",
+      createdByName: profile?.name || profile?.email || "Manager",
+      branchId: shift.branchId || "main",
+      branchName: shift.branchId || "Main Branch",
+      zone: shift.zone as any,
+      date: shift.day,
+      startTime: currentTime, // remaining shift starts now
+      endTime: shift.endTime,
+      reason: `Worker marked unavailable — ${shift.staffName || "Unknown"}`,
+      priority: "HIGH",
+      status: "OPEN",
+    })
+    // Broadcast notification to all
+    await sendNotification("all", "🚨 Emergency Vacancy", `${shift.zone} zone needs coverage from ${currentTime} to ${shift.endTime} on ${shift.day}.`, "shortage")
+  }
+
   const handleOptimize = async () => {
     if (shifts.length === 0) return
     setOptimizing(true)
@@ -196,13 +387,12 @@ export function WeeklyScheduler() {
         shifts.map((s) => {
           const updated = optimized.find((o) => o.id === s.id)
           return updated && updated.status !== s.status
-            ? updateShift(s.id, { status: updated.status })
+            ? _updateShift(s.id, { status: updated.status })
             : Promise.resolve()
         })
       )
     } catch {
-      // fallback: mark all optimal
-      await Promise.all(shifts.map((s) => updateShift(s.id, { status: "optimal" })))
+      await Promise.all(shifts.map((s) => _updateShift(s.id, { status: "optimal" })))
     } finally {
       setOptimizing(false)
     }
@@ -214,9 +404,9 @@ export function WeeklyScheduler() {
   }, {} as Record<string, Shift[]>)
 
   const statusCounts = {
-    understaffed: shifts.filter((s) => s.status === "understaffed").length,
+    vacant:       shifts.filter((s) => s.status === "vacant").length,
     optimal:      shifts.filter((s) => s.status === "optimal").length,
-    overworked:   shifts.filter((s) => s.status === "overworked").length,
+    upcoming:     shifts.filter((s) => s.status === "upcoming").length,
   }
 
   return (
@@ -266,7 +456,9 @@ export function WeeklyScheduler() {
                     ? shiftsByDay[day].map((shift) => (
                         <ShiftCard key={shift.id} shift={shift}
                           canEdit={isManagerOrAdmin}
-                          onDelete={handleDelete} />
+                          onDelete={handleDelete}
+                          onMarkUnavailable={handleMarkUnavailable}
+                          onEdit={setEditingShift} />
                       ))
                     : (
                       <div className="rounded-lg border border-dashed border-muted-foreground/30 p-3 text-center text-xs text-muted-foreground">
@@ -296,12 +488,20 @@ export function WeeklyScheduler() {
           onSaved={() => setAddingDay(null)}
         />
       )}
+
+      {editingShift && (
+        <EditShiftModal
+          shift={editingShift}
+          staff={staff}
+          onClose={() => setEditingShift(null)}
+          onSaved={() => setEditingShift(null)}
+        />
+      )}
     </>
   )
 }
 
-// helper used inside handleOptimize
+// Groq optimize helper
 async function updateShift(id: string, data: Partial<Shift>) {
-  const { updateShift: _update } = await import("@/lib/services/data-service")
-  return _update(id, data)
+  return _updateShift(id, data)
 }

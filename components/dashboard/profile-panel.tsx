@@ -45,6 +45,44 @@ function SickLeaveModal({ onClose }: { onClose: () => void }) {
   // Pre-fill zones from employee skills
   const myZones = profile?.skills?.map((s) => s.zone) ?? profile?.workerTypes ?? ALL_ZONES
 
+  // Auto-calculate remaining shift time from today's scheduled shifts
+  useEffect(() => {
+    const autoFill = async () => {
+      if (!profile) return
+      try {
+        const { getDocs, collection, query, where } = await import("firebase/firestore")
+        const { db } = await import("@/lib/firebase")
+        const today = new Date().toISOString().split("T")[0]
+        const now = new Date()
+        const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
+
+        const snap = await getDocs(
+          query(collection(db, "shifts"),
+            where("staffId", "==", profile.uid),
+            where("weekLabel", "==", today.slice(0, 10))
+          )
+        )
+        // Find a shift happening right now
+        const activeShift = snap.docs
+          .map((d) => d.data())
+          .find((s) => s.startTime <= currentTime && s.endTime >= currentTime)
+
+        if (activeShift) {
+          setStart(currentTime)
+          setEnd(activeShift.endTime)
+          if (activeShift.zone) setZone(activeShift.zone as WorkZone)
+        } else {
+          // No active shift found — default to current time
+          setStart(currentTime)
+        }
+      } catch {
+        const now = new Date()
+        setStart(`${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`)
+      }
+    }
+    autoFill()
+  }, [profile])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!profile || !start || !end) { setError("Please fill in all fields."); return }
@@ -406,7 +444,11 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
               </button>
             )}
 
-            <button onClick={() => auth.signOut()}
+            <button
+              onClick={() => {
+                sessionStorage.setItem("remo_logged_out", "true")
+                auth.signOut()
+              }}
               className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-destructive/30 text-destructive hover:bg-destructive/10 text-sm font-semibold transition-colors">
               <LogOut className="h-4 w-4" /> Sign Out
             </button>

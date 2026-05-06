@@ -89,8 +89,8 @@ function CreateAlertForm({ onCreated }: { onCreated: () => void }) {
         reason: reason.trim(),
         priority: "NORMAL",
         status: "OPEN",
-        aiSuggestedUid: aiSuggestion?.uid,
-        aiReason: aiSuggestion?.reason,
+        ...(aiSuggestion?.uid && { aiSuggestedUid: aiSuggestion.uid }),
+        ...(aiSuggestion?.reason && { aiReason: aiSuggestion.reason }),
       })
       onCreated()
     } catch (e: any) {
@@ -310,9 +310,10 @@ export function ShortageAlerts() {
   const isManagerOrAdmin = profile?.role === "ADMIN" || profile?.role === "MANAGER"
 
   const load = async () => {
+    if (!profile) return
     setLoading(true)
     try {
-      const data = await getAllShortageAlerts()
+      const data = await getAllShortageAlerts(profile)
       setAlerts(data)
     } finally {
       setLoading(false)

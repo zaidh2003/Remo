@@ -4,6 +4,7 @@
 import {
   collection, doc, getDocs, addDoc, updateDoc, deleteDoc,
   query, orderBy, where, onSnapshot, serverTimestamp,
+  runTransaction, getDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { Shift, Task, InventoryItem, ForecastData } from "@/lib/types";
@@ -47,6 +48,56 @@ export function subscribeToShifts(
       .map((d) => ({ id: d.id, ...d.data() } as Shift))
       .sort((a, b) => a.day.localeCompare(b.day));
     cb(sorted);
+  });
+}
+
+/**
+ * Get all shifts for a specific employee within a date/time range.
+ * Used for sick leave processing to find shifts that need to be marked vacant.
+ * 
+ * @param staffId - The employee's user ID
+ * @param date - The date to filter shifts (format: YYYY-MM-DD or day name)
+ * @param startTime - Start time of the range (format: HH:MM)
+ * @param endTime - End time of the range (format: HH:MM)
+ * @returns Array of shifts sorted by day and time
+ */
+export async function getShiftsForEmployee(
+  staffId: string,
+  date: string,
+  startTime: string,
+  endTime: string
+): Promise<Shift[]> {
+  // Query shifts by staffId
+  const q = query(
+    collection(db, "shifts"),
+    where("staffId", "==", staffId)
+  );
+  
+  const snap = await getDocs(q);
+  const allShifts = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Shift));
+  
+  // Filter shifts that fall within the date/time range
+  const filteredShifts = allShifts.filter((shift) => {
+    // Check if the shift is on the specified date
+    if (shift.day !== date) {
+      return false;
+    }
+    
+    // Check if the shift overlaps with the time range
+    // A shift overlaps if:
+    // - shift starts before range ends AND
+    // - shift ends after range starts
+    const shiftStartsBeforeRangeEnds = shift.startTime < endTime;
+    const shiftEndsAfterRangeStarts = shift.endTime > startTime;
+    
+    return shiftStartsBeforeRangeEnds && shiftEndsAfterRangeStarts;
+  });
+  
+  // Sort by day and time
+  return filteredShifts.sort((a, b) => {
+    const dayCompare = a.day.localeCompare(b.day);
+    if (dayCompare !== 0) return dayCompare;
+    return a.startTime.localeCompare(b.startTime);
   });
 }
 
@@ -182,4 +233,195 @@ export function subscribeToNotifications(
 
 export async function markNotificationRead(id: string): Promise<void> {
   await updateDoc(doc(db, "notifications", id), { read: true });
+}
+
+/**
+ * Send a notification to a worker about a shift change.
+ * Generates appropriate message based on the type of change.
+ * 
+ * @param staffId - The worker's user ID
+ * @param shift - The shift object with details
+ * @param changeType - Type of change: "assigned", "modified", or "removed"
+ */
+export async function notifyShiftChange(
+  staffId: string,
+  shift: Shift,
+  changeType: "assigned" | "modified" | "removed"
+): Promise<void> {
+  const messages = {
+    assigned: `You have been assigned a ${shift.zone} shift on ${shift.day} from ${shift.startTime} to ${shift.endTime}.`,
+    modified: `Your ${shift.zone} shift on ${shift.day} has been updated to ${shift.startTime} - ${shift.endTime}.`,
+    removed: `Your ${shift.zone} shift on ${shift.day} has been removed.`
+  };
+  
+  await sendNotification(staffId, "Schedule Update", messages[changeType], "shift");
+}
+
+// ── BRANCHES ──────────────────────────────────────────────────────────────────
+
+import type { Branch } from "@/lib/types";
+
+export async function getBranches(): Promise<Branch[]> {
+  const snap = await getDocs(collection(db, "branches"));
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() } as Branch))
+    .sort((a, b) => (a.createdAt?.toMillis?.() ?? 0) - (b.createdAt?.toMillis?.() ?? 0));
+}
+
+export async function saveBranch(branch: Omit<Branch, "id" | "createdAt">): Promise<string> {
+  const ref = await addDoc(collection(db, "branches"), { ...branch, createdAt: serverTimestamp() });
+  return ref.id;
+}
+
+export async function updateBranch(id: string, data: Partial<Omit<Branch, "id" | "createdAt">>): Promise<void> {
+  await updateDoc(doc(db, "branches", id), data);
+}
+
+export async function deleteBranch(id: string): Promise<void> {
+  await deleteDoc(doc(db, "branches", id));
+}
+
+export function subscribeToBranches(cb: (branches: Branch[]) => void) {
+  return onSnapshot(collection(db, "branches"), (snap) => {
+    const sorted = snap.docs
+      .map((d) => ({ id: d.id, ...d.data() } as Branch))
+      .sort((a, b) => (a.createdAt?.toMillis?.() ?? 0) - (b.createdAt?.toMillis?.() ?? 0));
+    cb(sorted);
+  });
+}
+
+// ── SWAP REQUESTS ─────────────────────────────────────────────────────────────
+
+import type { SwapRequest } from "@/lib/types";
+
+/**
+ * Create a new swap request document in Firestore.
+ * 
+ * @param swapRequest - The swap request data (without id and createdAt)
+ * @returns The ID of the created swap request
+ */
+export async function createSwapRequest(
+  swapRequest: Omit<SwapRequest, "id" | "createdAt" | "approvedAt">
+): Promise<string> {
+  const ref = await addDoc(collection(db, "swapRequests"), {
+    ...swapRequest,
+    createdAt: serverTimestamp()
+  });
+  return ref.id;
+}
+
+/**
+ * Subscribe to real-time updates of swap requests.
+ * Returns all swap requests sorted by creation date (newest first).
+ * 
+ * @param cb - Callback function that receives the updated swap requests array
+ * @returns Unsubscribe function to stop listening to updates
+ */
+export function getSwapRequests(cb: (swapRequests: SwapRequest[]) => void) {
+  return onSnapshot(collection(db, "swapRequests"), (snap) => {
+    const sorted = snap.docs
+      .map((d) => ({ id: d.id, ...d.data() } as SwapRequest))
+      .sort((a, b) => {
+        const aTime = a.createdAt?.toMillis?.() ?? 0;
+        const bTime = b.createdAt?.toMillis?.() ?? 0;
+        return bTime - aTime; // newest first
+      });
+    cb(sorted);
+  });
+}
+
+/**
+ * Approve a swap request and update shifts atomically using a Firestore transaction.
+ * This function will be fully implemented in task 6.3.
+ * 
+ * @param swapId - The ID of the swap request to approve
+ */
+export async function approveSwapRequest(swapId: string): Promise<void> {
+  await runTransaction(db, async (transaction) => {
+    // 1. Get swap request details
+    const swapRef = doc(db, "swapRequests", swapId);
+    const swapDoc = await transaction.get(swapRef);
+    
+    if (!swapDoc.exists()) {
+      throw new Error("Swap request not found");
+    }
+    
+    const swapData = swapDoc.data();
+    const { requesterId, requesterName, requesterShiftId, targetId, targetName, targetShiftId } = swapData;
+    
+    // 2. Get both shift documents
+    const requesterShiftRef = doc(db, "shifts", requesterShiftId);
+    const targetShiftRef = doc(db, "shifts", targetShiftId);
+    
+    const requesterShiftDoc = await transaction.get(requesterShiftRef);
+    const targetShiftDoc = await transaction.get(targetShiftRef);
+    
+    if (!requesterShiftDoc.exists() || !targetShiftDoc.exists()) {
+      throw new Error("One or both shifts not found");
+    }
+    
+    const requesterShift = requesterShiftDoc.data();
+    const targetShift = targetShiftDoc.data();
+    
+    // 3. Exchange staffId and staffName between the two shifts
+    transaction.update(requesterShiftRef, {
+      staffId: targetId,
+      staffName: targetName
+    });
+    
+    transaction.update(targetShiftRef, {
+      staffId: requesterId,
+      staffName: requesterName
+    });
+    
+    // 4. Update swap request status to APPROVED_BY_MANAGER and set approvedAt timestamp
+    transaction.update(swapRef, {
+      status: "APPROVED_BY_MANAGER",
+      approvedAt: serverTimestamp()
+    });
+  });
+  
+  // 5. Send notifications to both workers (outside transaction)
+  // Re-fetch swap data to get the details for notifications
+  const swapDoc = await getDoc(doc(db, "swapRequests", swapId));
+  if (swapDoc.exists()) {
+    const swapData = swapDoc.data();
+    const { requesterId, requesterName, targetId, targetName } = swapData;
+    
+    // Fetch shift details for notification messages
+    const requesterShiftDoc = await getDoc(doc(db, "shifts", swapData.requesterShiftId));
+    const targetShiftDoc = await getDoc(doc(db, "shifts", swapData.targetShiftId));
+    
+    if (requesterShiftDoc.exists() && targetShiftDoc.exists()) {
+      const requesterShift = requesterShiftDoc.data();
+      const targetShift = targetShiftDoc.data();
+      
+      // Notify requester
+      await sendNotification(
+        requesterId,
+        "Swap Request Approved",
+        `Your swap request has been approved. You will now work ${targetShift.zone} on ${targetShift.day} from ${targetShift.startTime} to ${targetShift.endTime}.`,
+        "swap"
+      );
+      
+      // Notify target
+      await sendNotification(
+        targetId,
+        "Swap Request Approved",
+        `The swap request has been approved. You will now work ${requesterShift.zone} on ${requesterShift.day} from ${requesterShift.startTime} to ${requesterShift.endTime}.`,
+        "swap"
+      );
+    }
+  }
+}
+
+/**
+ * Reject a swap request by updating its status to REJECTED.
+ * 
+ * @param swapId - The ID of the swap request to reject
+ */
+export async function rejectSwapRequest(swapId: string): Promise<void> {
+  await updateDoc(doc(db, "swapRequests", swapId), {
+    status: "REJECTED"
+  });
 }
