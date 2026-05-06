@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { Mail, Lock, Eye, EyeOff, Loader, Globe, User, Phone, Briefcase } from "lucide-react"
+import { Mail, Lock, Eye, EyeOff, Loader, Globe, User, Phone, Briefcase, ChefHat } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import WavyBackground from "@/components/ui/wavy-background"
 import { auth, googleProvider } from "@/lib/firebase"
