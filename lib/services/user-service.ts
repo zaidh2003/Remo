@@ -21,7 +21,7 @@ export async function createUserProfileIfNeeded(
   email: string | null,
   name?: string | null,
   initialRole: AppRole = "EMPLOYEE",
-  extra?: { phone?: string; position?: string }
+  extra?: { phone?: string; position?: string; branch?: string; primaryZone?: WorkZone }
 ) {
   if (!uid) return null;
 
@@ -40,8 +40,15 @@ export async function createUserProfileIfNeeded(
       name: name || email?.split("@")[0] || "Staff Member",
       phone: extra?.phone || "",
       position: extra?.position || "",
+      branch: extra?.branch || "Main Branch",
       createdAt: serverTimestamp(),
     };
+
+    // If primaryZone is provided, create initial skill with Beginner level
+    if (extra?.primaryZone) {
+      newUser.skills = [{ zone: extra.primaryZone, level: "Beginner" }];
+    }
+
     await setDoc(userRef, newUser);
     return newUser;
   }

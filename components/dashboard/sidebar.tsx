@@ -34,8 +34,8 @@ export function Sidebar({ activeTab, setActiveTab, isOpen = true }: SidebarProps
     )}>
       {/* Logo Section */}
       <div className="flex items-center gap-3 border-b border-border px-6 py-6 mt-16">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-lg">
-          <ChefHat className="h-6 w-6 text-white" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden">
+          <Image src="/Logo.jpg" alt="REMO" width={40} height={40} className="object-cover" />
         </div>
         <div>
           <h1 className="text-lg font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">RestaurantOS</h1>

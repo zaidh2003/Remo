@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { Mail, Lock, Eye, EyeOff, Loader, Globe, User, Phone, Briefcase, ChefHat } from "lucide-react"
+import { Mail, Lock, Eye, EyeOff, Loader, Globe, User, Phone, Briefcase, Building2, ChefHat } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import WavyBackground from "@/components/ui/wavy-background"
 import { auth, googleProvider } from "@/lib/firebase"
@@ -70,6 +70,11 @@ export function LoginPage() {
     signIn: lang === "en" ? "Sign In" : lang === "ru" ? "Войти" : "Prisijungti",
     signUp: lang === "en" ? "Sign Up" : lang === "ru" ? "Регистрация" : "Registruotis",
     accessDash: lang === "en" ? "Access your dashboard" : lang === "ru" ? "Доступ к панели управления" : "Prieiga prie valdymo skydelio",
+    fullName: lang === "en" ? "Full Name" : lang === "ru" ? "Полное имя" : "Vardas Pavardė",
+    email: lang === "en" ? "Email Address" : lang === "ru" ? "Электронная почта" : "El. pašto adresas",
+    password: lang === "en" ? "Password" : lang === "ru" ? "Пароль" : "Slaptažodis",
+    phone: lang === "en" ? "Phone Number" : lang === "ru" ? "Номер телефона" : "Telefono numeris",
+    position: lang === "en" ? "Job Position" : lang === "ru" ? "Должность" : "Pareigos",
     remember: lang === "en" ? "Remember me" : lang === "ru" ? "Запомнить меня" : "Prisiminti mane",
     forgot: lang === "en" ? "Forgot password?" : lang === "ru" ? "Забыли пароль?" : "Pamirsote slaptazodi?",
     signingIn: lang === "en" ? "Signing in..." : lang === "ru" ? "Вход..." : "Prisijungiama...",
@@ -85,11 +90,21 @@ export function LoginPage() {
   const [fullName, setFullName] = useState("")
   const [phone, setPhone]       = useState("")
   const [position, setPosition] = useState("")
+  const [branch, setBranch]     = useState("")
+  const [primaryZone, setPrimaryZone] = useState<string>("Kitchen")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const resetSignupFields = () => { setFullName(""); setPhone(""); setPosition("") }
+  const ZONES = ["Meat", "Salad", "Grill", "Fries", "Dishwashing", "Bar", "Waiter", "Kitchen", "Host"]
+
+  const resetSignupFields = () => { 
+    setFullName(""); 
+    setPhone(""); 
+    setPosition(""); 
+    setBranch(""); 
+    setPrimaryZone("Kitchen");
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -115,7 +130,12 @@ export function LoginPage() {
         const cred = await createUserWithEmailAndPassword(auth, email, password)
         await createUserProfileIfNeeded(
           cred.user.uid, cred.user.email, fullName.trim(), "EMPLOYEE",
-          { phone: phone.trim(), position: position.trim() }
+          { 
+            phone: phone.trim(), 
+            position: position.trim(),
+            branch: branch.trim() || "Main Branch",
+            primaryZone: primaryZone as any
+          }
         )
       }
     } catch (err: any) {
@@ -156,8 +176,8 @@ export function LoginPage() {
       <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between px-6 lg:px-12 py-12 gap-16 lg:gap-32 z-10 min-h-screen">
         {/* Left — branding */}
         <div className="flex flex-col items-center lg:items-start text-center lg:text-left max-w-xl p-8 rounded-3xl bg-black/20 backdrop-blur-md border border-white/10 shadow-2xl">
-          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-blue-600 shadow-lg shadow-primary/30 mb-6">
-            <ChefHat className="h-12 w-12 text-white" />
+          <div className="flex h-20 w-20 items-center justify-center rounded-2xl overflow-hidden shadow-lg shadow-primary/30 mb-6">
+            <Image src="/Logo.jpg" alt="REMO" width={80} height={80} className="object-cover" />
           </div>
           <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-4 tracking-tight drop-shadow-lg">
             {t.welcome}{" "}
@@ -222,6 +242,41 @@ export function LoginPage() {
                           placeholder="Head Chef"
                           className="w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-border rounded-lg pl-9 pr-3 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
                         />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-semibold text-foreground">
+                        {lang === "en" ? "Branch" : lang === "ru" ? "Филиал" : "Filialas"}
+                      </label>
+                      <div className="relative">
+                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <input
+                          type="text"
+                          value={branch}
+                          onChange={(e) => setBranch(e.target.value)}
+                          placeholder={lang === "en" ? "Main Branch" : lang === "ru" ? "Главный филиал" : "Pagrindinė filialas"}
+                          className="w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-border rounded-lg pl-9 pr-3 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors text-sm text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-semibold text-foreground">
+                        {lang === "en" ? "Primary Zone" : lang === "ru" ? "Основная зона" : "Pagrindinė zona"}
+                      </label>
+                      <div className="relative">
+                        <ChefHat className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <select
+                          value={primaryZone}
+                          onChange={(e) => setPrimaryZone(e.target.value)}
+                          className="w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-border rounded-lg pl-9 pr-3 py-2.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors text-sm text-gray-900 dark:text-white appearance-none"
+                        >
+                          {ZONES.map((zone) => (
+                            <option key={zone} value={zone}>{zone}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                   </div>
