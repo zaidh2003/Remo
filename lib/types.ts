@@ -38,6 +38,9 @@ export interface ShortageAlert {
   status: ShortageAlertStatus
   aiSuggestedUid?: string
   aiReason?: string
+  assignedTo?: string                    // FIX: Track which employee accepted
+  assignedToName?: string                // FIX: Name of assigned employee
+  assignedAt?: any                       // FIX: Timestamp when assigned
   createdAt: any
 }
 

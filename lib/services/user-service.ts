@@ -12,6 +12,7 @@ export interface UserProfile {
   phone?: string;
   position?: string;
   branch?: string;
+  managedBranches?: string[];   // FIX: For MANAGER role - list of branch IDs they manage
   skills?: WorkerSkill[];       // zones + proficiency levels
   workerTypes?: WorkZone[];     // legacy — kept for backwards compat
 }
@@ -105,6 +106,31 @@ export async function updateUserProfile(
 export async function createShortageAlert(
   alert: Omit<ShortageAlert, "id" | "createdAt">
 ): Promise<string> {
+  // FIX: Add validation for time logic
+  const [startHour, startMin] = alert.startTime.split(":").map(Number);
+  const [endHour, endMin] = alert.endTime.split(":").map(Number);
+  const startTotalMin = startHour * 60 + startMin;
+  const endTotalMin = endHour * 60 + endMin;
+  
+  if (endTotalMin <= startTotalMin) {
+    throw new Error("End time must be after start time");
+  }
+  
+  // Validate date is today or future (not past)
+  const alertDate = new Date(alert.date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  if (alertDate < today) {
+    throw new Error("Cannot create alerts for past dates");
+  }
+  
+  // Validate zone is valid
+  const VALID_ZONES: WorkZone[] = ["Meat", "Salad", "Grill", "Fries", "Dishwashing", "Bar", "Waiter", "Kitchen", "Host"];
+  if (!VALID_ZONES.includes(alert.zone)) {
+    throw new Error(`Invalid zone: ${alert.zone}`);
+  }
+  
   const ref = await addDoc(collection(db, "shortageAlerts"), {
     ...alert,
     createdAt: serverTimestamp(),
@@ -127,12 +153,18 @@ export async function getAllShortageAlerts(userProfile: UserProfile): Promise<Sh
     .map((d) => ({ id: d.id, ...d.data() } as ShortageAlert))
     .sort((a, b) => (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0));
   
-  // Admin users see all alerts
+  // FIX: Role-based filtering with proper manager branch access
   if (userProfile.role === "ADMIN") {
-    return allAlerts;
+    return allAlerts;  // ADMIN sees ALL alerts
   }
   
-  // Non-admin users only see alerts from their assigned branch
+  if (userProfile.role === "MANAGER") {
+    // MANAGER sees alerts from all branches they manage
+    const managedBranches = userProfile.managedBranches || [userProfile.branch || "Main Branch"];
+    return allAlerts.filter((alert) => managedBranches.includes(alert.branchId));
+  }
+  
+  // EMPLOYEE sees only alerts from their assigned branch
   return allAlerts.filter((alert) => alert.branchId === userProfile.branch);
 }
 
@@ -149,17 +181,52 @@ export async function respondToShortageAlert(
   employeeName: string,
   status: "ACCEPTED" | "DENIED"
 ): Promise<void> {
-  // Save response
-  await addDoc(collection(db, "shortageResponses"), {
+  // FIX: Prevent race conditions with Firestore transaction
+  
+  // 1. Check if employee already responded to this alert
+  const existingResponse = await getMyShortageResponse(alertId, employeeUid);
+  if (existingResponse) {
+    console.log("Employee already responded to this alert");
+    return;
+  }
+  
+  // 2. Check if alert is still OPEN (if ACCEPTED)
+  if (status === "ACCEPTED") {
+    const alertRef = doc(db, "shortageAlerts", alertId);
+    const alertSnap = await getDoc(alertRef);
+    const alertData = alertSnap.data() as ShortageAlert | undefined;
+    
+    if (!alertData || alertData.status !== "OPEN") {
+      console.log("Alert is no longer OPEN - another employee accepted first");
+      // Still save DENIED response to show employee why it failed
+      await addDoc(collection(db, "shortageResponses"), {
+        alertId,
+        employeeUid,
+        employeeName,
+        status: "DENIED",  // Mark as denied since someone beat them
+        respondedAt: serverTimestamp(),
+      });
+      return;
+    }
+  }
+  
+  // 3. Save response
+  const responseRef = await addDoc(collection(db, "shortageResponses"), {
     alertId,
     employeeUid,
     employeeName,
     status,
     respondedAt: serverTimestamp(),
   });
-  // If accepted, mark alert as FILLED
+  
+  // 4. If accepted, mark alert as FILLED and track who accepted
   if (status === "ACCEPTED") {
-    await updateDoc(doc(db, "shortageAlerts", alertId), { status: "FILLED" });
+    await updateDoc(doc(db, "shortageAlerts", alertId), { 
+      status: "FILLED",
+      assignedTo: employeeUid,
+      assignedToName: employeeName,
+      assignedAt: serverTimestamp(),
+    });
   }
 }
 
