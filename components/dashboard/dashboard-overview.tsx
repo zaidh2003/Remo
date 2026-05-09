@@ -82,24 +82,24 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
             </button>
             <button 
               type="button"
-              onClick={() => handleNavigate("staff")}
+              onClick={() => handleNavigate("emergencies")}
               className="w-full rounded-lg bg-secondary px-4 py-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 cursor-pointer"
             >
-              Review Inventory Alerts
+              Review Emergency Shifts
             </button>
             <button 
               type="button"
               onClick={() => handleNavigate("staff")}
               className="w-full rounded-lg bg-secondary px-4 py-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 cursor-pointer"
             >
-              Update Staff Availability
+              Update Staff Directory
             </button>
             <button 
               type="button"
-              onClick={() => handleNavigate("staff")}
+              onClick={() => handleNavigate("shortage")}
               className="w-full rounded-lg bg-secondary px-4 py-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 cursor-pointer"
             >
-              View Labor Reports
+              View Shortage Alerts
             </button>
           </CardContent>
         </Card>

@@ -1,12 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { ChefHat, Mail, Lock, Eye, EyeOff, Loader, Globe, User, Phone, Briefcase } from "lucide-react"
+import Image from "next/image"
+import { Mail, Lock, Eye, EyeOff, Loader, Globe, User, Phone, Briefcase } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import WavyBackground from "@/components/ui/wavy-background"
 import { auth, googleProvider } from "@/lib/firebase"
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth"
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail } from "firebase/auth"
 import { createUserProfileIfNeeded } from "@/lib/services/user-service"
+import { useRouter } from "next/navigation"
 
 type Language = "en" | "ru" | "lt"
 
@@ -55,6 +57,7 @@ const translations = {
 export function LoginPage() {
   const [lang, setLang] = useState<Language>("en")
   const t = translations[lang]
+  const router = useRouter()
 
   const [isLoginMode, setIsLoginMode] = useState(true)
   const [email, setEmail]       = useState("")
@@ -112,6 +115,20 @@ export function LoginPage() {
     }
   }
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError("Enter your email address first, then click Forgot Password.")
+      return
+    }
+    try {
+      await sendPasswordResetEmail(auth, email)
+      setError("")
+      alert(`Password reset email sent to ${email}`)
+    } catch (err: any) {
+      setError(err.message || "Failed to send reset email.")
+    }
+  }
+
   const switchMode = () => { setIsLoginMode(!isLoginMode); setError(""); resetSignupFields() }
 
   return (
@@ -133,15 +150,18 @@ export function LoginPage() {
       <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between px-6 lg:px-12 py-12 gap-16 lg:gap-32 z-10 min-h-screen">
         {/* Left — branding */}
         <div className="flex flex-col items-center lg:items-start text-center lg:text-left max-w-xl p-8 rounded-3xl bg-black/20 backdrop-blur-md border border-white/10 shadow-2xl">
-          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-blue-600 shadow-lg shadow-primary/30 mb-6">
-            <ChefHat className="h-12 w-12 text-white" />
+          <div className="flex h-20 w-20 items-center justify-center rounded-2xl overflow-hidden shadow-lg shadow-primary/30 mb-6">
+            <Image src="/Logo.jpg" alt="REMO" width={80} height={80} className="object-cover" />
           </div>
           <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-4 tracking-tight drop-shadow-lg">
             {t.welcome}{" "}
             <span className="bg-gradient-to-r from-blue-400 to-primary bg-clip-text text-transparent">REMO</span>
           </h1>
           <p className="text-lg md:text-xl text-slate-300 mb-8 max-w-md drop-shadow-md">{t.description}</p>
-          <Button variant="outline" className="rounded-full bg-white/10 text-white border-white/20 hover:bg-white/20 px-6 py-6 text-base shadow-xl backdrop-blur-sm">
+          <Button
+            variant="outline"
+            onClick={() => router.push("/landing")}
+            className="rounded-full bg-white/10 text-white border-white/20 hover:bg-white/20 px-6 py-6 text-base shadow-xl backdrop-blur-sm">
             {t.learnMore}
           </Button>
         </div>
@@ -254,7 +274,13 @@ export function LoginPage() {
                     <input type="checkbox" className="w-4 h-4 rounded border-border" />
                     <span className="text-sm text-muted-foreground">{t.remember}</span>
                   </label>
-                  <a href="#" className="text-sm text-primary hover:underline">{t.forgot}</a>
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    {t.forgot}
+                  </button>
                 </div>
               )}
 

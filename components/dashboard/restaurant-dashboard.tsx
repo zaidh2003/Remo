@@ -11,10 +11,13 @@ import { InventoryManagement } from "./inventory-management"
 import { RoleManagement } from "@/components/auth/role-management"
 import { UserManagement } from "@/components/dashboard/user-management"
 import { ShortageAlerts } from "@/components/dashboard/shortage-alerts"
+import { SwapRequests } from "@/components/dashboard/swap-requests"
+import { BranchManagement } from "@/components/dashboard/branch-management"
 import { initialShifts } from "@/lib/mock-data"
 import type { Shift } from "@/lib/types"
 import type { UserProfile } from "@/lib/services/user-service"
-import { ChefHat, LogOut, Sun, Moon, Bell } from "lucide-react"
+import Image from "next/image"
+import { Bell, LogOut } from "lucide-react"
 import { optimizeSchedule } from "@/lib/services/groq-service"
 import { staffData } from "@/lib/mock-data"
 import { ProfilePanel } from "./profile-panel"
@@ -23,7 +26,6 @@ export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile 
   const [activeTab, setActiveTab] = useState("dashboard")
   const [shifts, setShifts] = useState<Shift[]>(initialShifts)
   const [isOptimizing, setIsOptimizing] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(true)
   const [showProfile, setShowProfile] = useState(false)
 
   const handleOptimize = async () => {
@@ -82,8 +84,20 @@ export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile 
             <ShortageAlerts />
           </div>
         )
+      case "swaps":
+        return (
+          <div className="max-w-4xl mx-auto">
+            <SwapRequests />
+          </div>
+        )
+      case "branches":
+        return (
+          <div className="max-w-5xl mx-auto">
+            <BranchManagement />
+          </div>
+        )
       default:
-        return <DashboardOverview />
+        return <DashboardOverview onNavigate={setActiveTab} />
     }
   }
 
@@ -97,6 +111,8 @@ export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile 
       case "settings": return "System Settings"
       case "users": return "User Management"
       case "shortage": return "Staff Shortage Alerts"
+      case "swaps": return "Shift Swap Requests"
+      case "branches": return "Branch Management"
       default: return "Dashboard"
     }
   }
@@ -107,8 +123,8 @@ export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile 
       <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 max-w-screen-2xl items-center justify-between px-4 md:px-8 mx-auto">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-lg shadow-primary/20">
-              <ChefHat className="h-6 w-6 text-white" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden shadow-lg shadow-primary/20">
+              <Image src="/Logo.jpg" alt="REMO" width={40} height={40} className="object-cover" />
             </div>
             <div className="hidden sm:block">
               <h1 className="text-lg font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">REMO</h1>
@@ -117,9 +133,6 @@ export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile 
           </div>
           
           <div className="flex items-center gap-4">
-            <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 rounded-full hover:bg-muted transition-colors relative isolate">
-              {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </button>
             <button className="p-2 rounded-full hover:bg-muted transition-colors relative">
               <Bell className="h-5 w-5" />
               <span className="absolute top-1.5 right-2 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-background" />

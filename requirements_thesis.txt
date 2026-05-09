@@ -1,0 +1,13 @@
+# Python requirements for REMO Thesis Formatting
+
+# Core library for Word document manipulation
+python-docx>=0.8.11
+
+# Optional: For advanced document processing
+# lxml>=4.9.0
+
+# Optional: For spell checking
+# pyspellchecker>=0.7.0
+
+# Optional: For grammar checking
+# language-tool-python>=2.7.0
