@@ -27,7 +27,7 @@ REMO (Restaurant Employee Management & Operations) is a web-based, AI-powered re
 - Role-based access control (Admin / Manager / Employee)
 - AI-powered shift optimisation via Groq LLaMA 3.3 70B
 - Real-time Firestore database with live updates
-- Multilingual interface (English, Russian, Lithuanian)
+- Multilingual interface (English, Russian, Latvian)
 - Transport (taxi) request and approval system
 - Automated sick-leave → shortage alert pipeline
 
@@ -45,7 +45,7 @@ When a user visits the application for the first time (or after logging out), th
 
 | Element | Description |
 |---------|-------------|
-| Language selector (top-right) | Switch between EN / RU / LT before logging in |
+| Language selector (top-right) | Switch between EN / RU / LV before logging in |
 | REMO logo & branding (left panel) | Shows app name and description |
 | Email Address field | Enter your registered email |
 | Password field | Enter your password (eye icon toggles visibility) |

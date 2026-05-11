@@ -37,7 +37,7 @@ The signup form now has 4 rows:
 #### Translations Added:
 - **English:** "Branch", "Primary Zone"
 - **Russian:** "Филиал", "Основная зона"
-- **Lithuanian:** "Filialas", "Pagrindinė zona"
+- **Latvian:** "Filiāle", "Primārā zona"
 
 #### Data Submission:
 ```typescript
@@ -203,7 +203,7 @@ interface WorkerSkill {
 - [ ] Profile created with branch and skill
 - [ ] Branch filtering works for new users
 - [ ] AI matching includes new users
-- [ ] Translations display correctly (EN/RU/LT)
+- [ ] Translations display correctly (EN/RU/LV)
 - [ ] Google sign-in still works
 - [ ] Existing users not affected
 - [ ] Mobile responsive layout

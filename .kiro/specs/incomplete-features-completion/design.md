@@ -19,7 +19,7 @@ This design addresses seven incomplete features in the REMO restaurant managemen
 - Must integrate seamlessly with existing Firebase/Firestore architecture
 - Must respect existing role-based access control (ADMIN, MANAGER, EMPLOYEE)
 - Must maintain real-time synchronization using Firestore listeners
-- Must support multi-language interface (English, Russian, Lithuanian)
+- Must support multi-language interface (English, Russian, Latvian)
 - Must work within existing component structure and styling patterns
 
 ## Architecture
@@ -159,7 +159,7 @@ async function getAllShortageAlerts(
 **Interface**:
 ```typescript
 interface LanguageContextType {
-  lang: AppLanguage  // "en" | "ru" | "lt"
+  lang: AppLanguage  // "en" | "ru" | "lv"
   setLang: (l: AppLanguage) => void
   t: typeof translations["en"]  // Translation object
 }
@@ -498,7 +498,7 @@ These redundant properties will be consolidated into single, comprehensive prope
 
 ### Property 8: Language Selection Persistence
 
-*For any* language selection (en, ru, lt), the selected language should be stored in localStorage and retrievable on subsequent page loads.
+*For any* language selection (en, ru, lv), the selected language should be stored in localStorage and retrievable on subsequent page loads.
 
 **Validates: Requirements 3.1**
 
@@ -647,7 +647,7 @@ This feature will use both unit tests and property-based tests for comprehensive
 
 **Unit Tests**: Focus on specific examples, edge cases, and integration points
 - Example: Admin can access branch management, employee cannot
-- Example: Language selector displays three options (en, ru, lt)
+- Example: Language selector displays three options (en, ru, lv)
 - Example: Sick leave form does not have time window input fields
 - Edge case: Empty branch name validation
 - Edge case: Marking an already-vacant shift as unavailable

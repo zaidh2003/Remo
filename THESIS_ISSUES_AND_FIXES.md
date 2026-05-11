@@ -154,7 +154,7 @@ National Restaurant Association. (2023). State of the restaurant
 
 ### 6. Missing Feature Mentions
 **Features Not Mentioned:**
-- Multilingual support (English, Russian, Lithuanian)
+- Multilingual support (English, Russian, Latvian)
 - Taxi management system
 
 **Action:** Add sections describing:

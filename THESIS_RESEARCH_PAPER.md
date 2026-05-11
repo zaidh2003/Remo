@@ -31,7 +31,7 @@
 - ✅ Policy-enforced transport management (taxi system)
 - ✅ Multi-skill worker support with proficiency levels
 - ✅ First-come-first-serve shift acceptance mechanism
-- ✅ Multilingual interface (English, Russian, Lithuanian)
+- ✅ Multilingual interface (English, Russian, Latvian)
 - ✅ Real-time notifications and alerts
 - ✅ Firestore-enforced role-based access control
 
@@ -176,7 +176,7 @@ RestaurantDashboard (Main Container)
 | 7 | First-Come-First-Serve | ✅ 95% COMPLETE | ShortageResponses | FIFO acceptance mechanism implemented |
 | 8 | Shift Swap Feature | ⚠️ PARTIAL | Types defined, UI missing | Data structure exists, UI not implemented |
 | 9 | Taxi System | ✅ 95% COMPLETE | TaxiManagement + Groq | Pickup (emergency only), Dropoff (10PM+), policy enforced |
-| 10 | Multi-Language Support | ⚠️ 30% COMPLETE | Types + Landing page | EN/RU/LT defined, no i18n library integrated |
+| 10 | Multi-Language Support | ⚠️ 30% COMPLETE | Types + Landing page | EN/RU/LV defined, no i18n library integrated |
 | 11 | AI-Powered Decisions | ✅ 100% COMPLETE | Groq Service (5 actions) | Schedule optimization, staff matching, policy checking |
 | 12 | Multi-Skill Workers | ✅ COMPLETE | WorkerSkill interface | Skills + proficiency levels tracked |
 | 13 | Inventory Management | ⚠️ 40% COMPLETE | Component exists, no CRUD | Display only, no database sync |
@@ -444,8 +444,8 @@ Logic:
 
 #### 1. **Multi-Language Support (30%)**
 - **What Exists:**
-  - Type definitions: `language?: "en" | "ru" | "lt"`
-  - Support for English, Russian, Lithuanian defined
+  - Type definitions: `language?: "en" | "ru" | "lv"`
+  - Support for English, Russian, Latvian defined
   - Landing page uses hardcoded English
 
 - **What's Missing:**
@@ -464,7 +464,7 @@ npm install next-i18next i18next react-i18next
 /public/locales/
   ├── en/translation.json
   ├── ru/translation.json
-  └── lt/translation.json
+  └── lv/translation.json
 
 # Step 3: Implement language selector
 # Step 4: Wrap components with I18nProvider
@@ -664,7 +664,7 @@ interface UserProfile {
   skills: WorkerSkill[]         // [{ zone, level }]
   availability: "available" | "busy" | "off"
   phone?: string
-  language: "en" | "ru" | "lt"
+  language: "en" | "ru" | "lv"
   avatar?: string
   createdAt: Timestamp
   lastLogin?: Timestamp
@@ -1501,7 +1501,7 @@ graph TD
 
 3. **Multilingual Support** (6-8 hours)
    - next-i18next integration
-   - Translation files (EN/RU/LT)
+   - Translation files (EN/RU/LV)
    - Language selector UI
    - Dynamic content switching
 

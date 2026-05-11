@@ -230,7 +230,7 @@ python format_thesis.py your_thesis.docx formatted_thesis.docx
    - Firestore security rules
 
 5. **Multilingual Support**
-   - English, Russian, Lithuanian
+   - English, Russian, Latvian
    - Complete UI translation
 
 #### Metrics to Include:

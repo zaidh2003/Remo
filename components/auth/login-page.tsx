@@ -10,7 +10,7 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithP
 import { createUserProfileIfNeeded } from "@/lib/services/user-service"
 import { useRouter } from "next/navigation"
 
-type Language = "en" | "ru" | "lt"
+type Language = "en" | "ru" | "lv"
 
 const translations = {
   en: {
@@ -39,18 +39,18 @@ const translations = {
     continueWith: "Или продолжите через",
     noAccount: "Нет аккаунта?", haveAccount: "Уже есть аккаунт?",
   },
-  lt: {
-    welcome: "Sveiki atvykę į",
-    description: "Ismani restoranu valdymo sistema 'viskas viename'.",
-    learnMore: "Suzinoti daugiau",
-    signIn: "Prisijungti", signUp: "Registruotis",
-    accessDash: "Prieiga prie valdymo skydelio",
-    fullName: "Vardas Pavardė", email: "El. pašto adresas", password: "Slaptažodis",
-    phone: "Telefono numeris", position: "Pareigos",
-    remember: "Prisiminti mane", forgot: "Pamiršote slaptažodį?",
-    signingIn: "Prisijungiama...", signingUp: "Registruojamasi...",
-    continueWith: "Arba tęskite su",
-    noAccount: "Neturite paskyros?", haveAccount: "Jau turite paskyrą?",
+  lv: {
+    welcome: "Laipni lūdzam",
+    description: "Viss vienā viedā restorāna pārvaldības sistēma.",
+    learnMore: "Uzzināt vairāk",
+    signIn: "Pieteikties", signUp: "Reģistrēties",
+    accessDash: "Piekļūt vadības panelim",
+    fullName: "Pilns vārds", email: "E-pasta adrese", password: "Parole",
+    phone: "Tālruņa numurs", position: "Amats",
+    remember: "Atcerēties mani", forgot: "Aizmirsāt paroli?",
+    signingIn: "Piesakās...", signingUp: "Reģistrējas...",
+    continueWith: "Vai turpiniet ar",
+    noAccount: "Nav konta?", haveAccount: "Jau ir konts?",
   },
 }
 
@@ -143,7 +143,7 @@ export function LoginPage() {
         >
           <option className="text-black" value="en">EN</option>
           <option className="text-black" value="ru">RU</option>
-          <option className="text-black" value="lt">LT</option>
+          <option className="text-black" value="lv">LV</option>
         </select>
       </div>
 

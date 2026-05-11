@@ -236,7 +236,7 @@ Groq Function: checkTaxiEligibility(request, recentShifts)
 **Completion**: ~30%
 
 ### Evidence
-- **Type Definitions**: [lib/types.ts](lib/types.ts) — `language?: "en" | "ru" | "lt"` field in Staff interface
+- **Type Definitions**: [lib/types.ts](lib/types.ts) — `language?: "en" | "ru" | "lv"` field in Staff interface
 - **UI Components**: NO multilingual implementation found
 - **Translation Files**: MISSING
 - **i18n Library**: NO i18n library installed (no i18next, react-intl, etc.)
@@ -246,13 +246,13 @@ Groq Function: checkTaxiEligibility(request, recentShifts)
 // Type support only:
 export interface Staff {
   // ...
-  language?: "en" | "ru" | "lt"
+  language?: "en" | "ru" | "lv"
 }
 ```
 
 ### What's Missing
 ❌ UI language selector component  
-❌ Translation files for English, Russian, Lithuanian  
+❌ Translation files for English, Russian, Latvian  
 ❌ i18n library integration  
 ❌ useTranslation hook  
 ❌ Dynamic language switching in components  
@@ -267,7 +267,7 @@ export interface Staff {
 Add next-i18next or react-intl, create translation files:
 - `/public/locales/en/common.json`
 - `/public/locales/ru/common.json`
-- `/public/locales/lt/common.json`
+- `/public/locales/lv/common.json`
 
 ---
 
@@ -492,7 +492,7 @@ taxis/
 
 ### Priority 2: Implement Multilingual Support
 - Install i18n library (next-i18next recommended)
-- Create translation files for EN, RU, LT
+- Create translation files for EN, RU, LV
 - Add language selector in profile/settings
 - Translate all UI components
 

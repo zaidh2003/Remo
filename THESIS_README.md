@@ -40,7 +40,7 @@ This thesis presents REMO (Restaurant Employee Management & Operations), an inte
 - AI-powered staff matching algorithm for emergency situations
 - Real-time multi-branch coordination system
 - Policy-enforced transport management
-- Multilingual support (English, Russian, Lithuanian)
+- Multilingual support (English, Russian, Latvian)
 - Role-based access control with Firebase security
 
 **Technologies:** Next.js 16, React 19, TypeScript, Firebase, Groq AI, Tailwind CSS
