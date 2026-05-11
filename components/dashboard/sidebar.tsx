@@ -11,6 +11,8 @@ import {
   TrendingDown,
   ChevronRight,
 } from "lucide-react"
+import { LanguageSelector } from "@/components/ui/language-selector"
+import { useLang } from "@/components/providers/language-provider"
 
 interface SidebarProps {
   activeTab: string
@@ -19,14 +21,16 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "scheduler", label: "Smart Scheduler", icon: Calendar },
-  { id: "forecast", label: "Demand Forecast", icon: TrendingUp },
-  { id: "staff", label: "Staff Directory", icon: Users },
-  { id: "inventory", label: "Inventory Management", icon: Package },
+  { id: "dashboard", labelKey: "dashboard" as const, icon: LayoutDashboard },
+  { id: "scheduler", labelKey: "scheduler" as const, icon: Calendar },
+  { id: "forecast", labelKey: "forecast" as const, icon: TrendingUp },
+  { id: "staff", labelKey: "staff" as const, icon: Users },
+  { id: "inventory", labelKey: "inventory" as const, icon: Package },
 ]
 
 export function Sidebar({ activeTab, setActiveTab, isOpen = true }: SidebarProps) {
+  const { t } = useLang()
+  
   return (
     <aside className={cn(
       "fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-gradient-to-b from-card to-sidebar border-r border-border transition-transform duration-300 lg:translate-x-0",
@@ -37,10 +41,11 @@ export function Sidebar({ activeTab, setActiveTab, isOpen = true }: SidebarProps
         <div className="flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden">
           <Image src="/Logo.jpg" alt="REMO" width={40} height={40} className="object-cover" />
         </div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-lg font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">RestaurantOS</h1>
           <p className="text-xs text-muted-foreground">Management</p>
         </div>
+        <LanguageSelector />
       </div>
 
       {/* Navigation Section */}
@@ -67,7 +72,7 @@ export function Sidebar({ activeTab, setActiveTab, isOpen = true }: SidebarProps
                   "h-5 w-5 transition-transform",
                   activeTab === item.id && "scale-110"
                 )} />
-                <span className="flex-1 text-left">{item.label}</span>
+                <span className="flex-1 text-left">{t[item.labelKey]}</span>
                 {activeTab === item.id && (
                   <ChevronRight className="h-4 w-4" />
                 )}

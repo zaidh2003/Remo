@@ -3,7 +3,7 @@
 export type AppRole = "ADMIN" | "MANAGER" | "EMPLOYEE"
 export type WorkZone = "Meat" | "Salad" | "Grill" | "Fries" | "Dishwashing" | "Bar" | "Waiter" | "Kitchen" | "Host"
 export type SkillLevel = "Beginner" | "Intermediate" | "Expert"
-export type AppLanguage = "en" | "ru" | "lt"
+export type AppLanguage = "en" | "ru" | "lv"
 
 export interface WorkerSkill {
   zone: WorkZone
@@ -61,7 +61,7 @@ export interface Staff {
   skills: WorkZone[]
   availability: "available" | "busy" | "off"
   avatar: string
-  language?: "en" | "ru" | "lt"
+  language?: "en" | "ru" | "lv"
 }
 
 export interface Shift {
