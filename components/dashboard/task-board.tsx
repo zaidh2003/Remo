@@ -156,15 +156,28 @@ export function TaskBoard() {
     if (isManagerOrAdmin) getAllUsers().then(setStaff)
   }, [isManagerOrAdmin])
 
+  // EMPLOYEE: only see tasks assigned to them; ADMIN/MANAGER: see all tasks
+  const myIdentifier = profile?.name || profile?.email || ""
+  const visibleTasks = isManagerOrAdmin
+    ? tasks
+    : tasks.filter((t) => t.assignedTo && t.assignedTo === myIdentifier)
+
   const tasksByCategory = categories.reduce((acc, cat) => {
-    acc[cat] = tasks.filter((t) => t.category === cat)
+    acc[cat] = visibleTasks.filter((t) => t.category === cat)
     return acc
   }, {} as Record<Category, Task[]>)
 
   return (
     <Card className="col-span-full">
       <CardHeader>
-        <CardTitle>Task Board</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Task Board</CardTitle>
+          {!isManagerOrAdmin && (
+            <span className="text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">
+              Showing your assigned tasks
+            </span>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-5 gap-4">

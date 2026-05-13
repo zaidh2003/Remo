@@ -321,19 +321,25 @@ function ShiftCard({ shift, canEdit, onDelete, onMarkUnavailable, onEdit }: {
 // ── Main Scheduler ────────────────────────────────────────────────────────────
 export function WeeklyScheduler() {
   const { profile } = useAuth()
-  const [shifts, setShifts]         = useState<Shift[]>([])
+  const [allShifts, setAllShifts]   = useState<Shift[]>([])
   const [staff, setStaff]           = useState<UserProfile[]>([])
   const [isOptimizing, setOptimizing] = useState(false)
   const [addingDay, setAddingDay]   = useState<string | null>(null)
   const [editingShift, setEditingShift] = useState<Shift | null>(null)
   const [weekLabel]                 = useState(getWeekLabel())
   const isManagerOrAdmin = profile?.role === "ADMIN" || profile?.role === "MANAGER"
+  const isAdmin = profile?.role === "ADMIN"
+  const myBranch = profile?.branch ?? ""
 
-  // Real-time shifts subscription
+  // Real-time shifts subscription — filter by branch for MANAGER
   useEffect(() => {
-    const unsub = subscribeToShifts(weekLabel, setShifts)
+    const unsub = subscribeToShifts(weekLabel, (fetched) => {
+      // ADMIN sees all; MANAGER sees own branch only
+      const scoped = isAdmin ? fetched : fetched.filter((s) => s.branchId === myBranch)
+      setAllShifts(scoped)
+    })
     return () => unsub()
-  }, [weekLabel])
+  }, [weekLabel, isAdmin, myBranch])
 
   // Load staff for the add-shift modal
   useEffect(() => {
@@ -378,13 +384,13 @@ export function WeeklyScheduler() {
   }
 
   const handleOptimize = async () => {
-    if (shifts.length === 0) return
+    if (allShifts.length === 0) return
     setOptimizing(true)
     try {
-      const optimized = await optimizeSchedule(shifts, staff as any)
+      const optimized = await optimizeSchedule(allShifts, staff as any)
       // Batch update statuses in Firestore
       await Promise.all(
-        shifts.map((s) => {
+        allShifts.map((s) => {
           const updated = optimized.find((o) => o.id === s.id)
           return updated && updated.status !== s.status
             ? _updateShift(s.id, { status: updated.status })
@@ -392,21 +398,21 @@ export function WeeklyScheduler() {
         })
       )
     } catch {
-      await Promise.all(shifts.map((s) => _updateShift(s.id, { status: "optimal" })))
+      await Promise.all(allShifts.map((s) => _updateShift(s.id, { status: "optimal" })))
     } finally {
       setOptimizing(false)
     }
   }
 
   const shiftsByDay = weekDays.reduce((acc, day) => {
-    acc[day] = shifts.filter((s) => s.day === day)
+    acc[day] = allShifts.filter((s) => s.day === day)
     return acc
   }, {} as Record<string, Shift[]>)
 
   const statusCounts = {
-    vacant:       shifts.filter((s) => s.status === "vacant").length,
-    optimal:      shifts.filter((s) => s.status === "optimal").length,
-    upcoming:     shifts.filter((s) => s.status === "upcoming").length,
+    vacant:       allShifts.filter((s) => s.status === "vacant").length,
+    optimal:      allShifts.filter((s) => s.status === "optimal").length,
+    upcoming:     allShifts.filter((s) => s.status === "upcoming").length,
   }
 
   return (
@@ -416,11 +422,11 @@ export function WeeklyScheduler() {
           <div className="flex items-start justify-between flex-wrap gap-3">
             <div>
               <CardTitle>Weekly Schedule</CardTitle>
-              <CardDescription>Week of {weekLabel} · {shifts.length} shifts</CardDescription>
+              <CardDescription>Week of {weekLabel} · {allShifts.length} shifts{!isAdmin && myBranch ? ` · ${myBranch}` : ""}</CardDescription>
             </div>
             <div className="flex gap-2">
               {isManagerOrAdmin && (
-                <Button onClick={handleOptimize} disabled={isOptimizing || shifts.length === 0}
+                <Button onClick={handleOptimize} disabled={isOptimizing || allShifts.length === 0}
                   className="gap-2 bg-primary hover:bg-primary/90">
                   {isOptimizing
                     ? <><Loader2 className="h-4 w-4 animate-spin" />Optimizing…</>
@@ -429,7 +435,7 @@ export function WeeklyScheduler() {
               )}
             </div>
           </div>
-          {shifts.length > 0 && (
+          {allShifts.length > 0 && (
             <div className="flex gap-3 pt-2 flex-wrap">
               {Object.entries(statusCounts).map(([status, count]) => {
                 const cfg = statusConfig[status]

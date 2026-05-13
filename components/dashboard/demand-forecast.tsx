@@ -65,35 +65,16 @@ export function DemandForecast() {
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={forecastData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="time" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                  <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="predicted"
-                    stroke="hsl(var(--chart-1))"
-                    fill="hsl(var(--chart-1))"
-                    fillOpacity={0.2}
-                    strokeWidth={2}
-                    name="Predicted"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="historical"
-                    stroke="hsl(var(--chart-2))"
-                    fill="hsl(var(--chart-2))"
-                    fillOpacity={0.1}
-                    strokeWidth={2}
-                    strokeDasharray="5 5"
-                    name="Historical Avg"
-                  />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                  <XAxis dataKey="time" tick={{ fill: "#9ca3af", fontSize: 12 }} />
+                  <YAxis tick={{ fill: "#9ca3af", fontSize: 12 }} />
+                  <Tooltip contentStyle={{ backgroundColor: "#1e1e2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#f4f4f5" }} />
+                  <Area type="monotone" dataKey="predicted"
+                    stroke="#6366f1" fill="#6366f1" fillOpacity={0.2}
+                    strokeWidth={2} name="Predicted" />
+                  <Area type="monotone" dataKey="historical"
+                    stroke="#22d3ee" fill="#22d3ee" fillOpacity={0.1}
+                    strokeWidth={2} strokeDasharray="5 5" name="Historical Avg" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -109,19 +90,13 @@ export function DemandForecast() {
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={weeklyForecast}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="day" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                  <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                    }}
-                  />
-                  <Legend />
-                  <Bar dataKey="predicted" fill="hsl(var(--chart-1))" name="Predicted" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="actual" fill="hsl(var(--chart-2))" name="Actual" radius={[4, 4, 0, 0]} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                  <XAxis dataKey="day" tick={{ fill: "#9ca3af", fontSize: 12 }} />
+                  <YAxis tick={{ fill: "#9ca3af", fontSize: 12 }} />
+                  <Tooltip contentStyle={{ backgroundColor: "#1e1e2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#f4f4f5" }} />
+                  <Legend wrapperStyle={{ fontSize: "12px", color: "#9ca3af" }} />
+                  <Bar dataKey="predicted" fill="#6366f1" name="Predicted" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="actual" fill="#22d3ee" name="Actual" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

@@ -121,19 +121,26 @@ export function ForecastChart() {
         <div className="h-[280px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="time" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-              <YAxis className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-              <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
-              <Legend />
-              <ReferenceLine x="13:00" stroke="hsl(var(--primary))" strokeDasharray="5 5"
-                label={{ value: "Lunch", fill: "hsl(var(--primary))", fontSize: 11 }} />
-              <ReferenceLine x="20:00" stroke="hsl(var(--primary))" strokeDasharray="5 5"
-                label={{ value: "Dinner", fill: "hsl(var(--primary))", fontSize: 11 }} />
-              <Line type="monotone" dataKey="predicted" stroke="hsl(var(--chart-1))" strokeWidth={2}
-                dot={{ r: 3 }} activeDot={{ r: 5 }} name="Predicted" />
-              <Line type="monotone" dataKey="historical" stroke="hsl(var(--chart-2))" strokeWidth={2}
-                strokeDasharray="5 5" dot={{ r: 2 }} name="Historical Avg" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+              <XAxis dataKey="time" tick={{ fill: "#9ca3af", fontSize: 11 }} />
+              <YAxis tick={{ fill: "#9ca3af", fontSize: 11 }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#1e1e2e",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: "8px",
+                  color: "#f4f4f5",
+                }}
+              />
+              <Legend wrapperStyle={{ fontSize: "12px", color: "#9ca3af" }} />
+              <ReferenceLine x="13:00" stroke="#a78bfa" strokeDasharray="5 5"
+                label={{ value: "Lunch", fill: "#a78bfa", fontSize: 11 }} />
+              <ReferenceLine x="20:00" stroke="#a78bfa" strokeDasharray="5 5"
+                label={{ value: "Dinner", fill: "#a78bfa", fontSize: 11 }} />
+              <Line type="monotone" dataKey="predicted" stroke="#6366f1" strokeWidth={2.5}
+                dot={{ r: 3, fill: "#6366f1" }} activeDot={{ r: 5 }} name="Predicted" />
+              <Line type="monotone" dataKey="historical" stroke="#22d3ee" strokeWidth={2}
+                strokeDasharray="5 5" dot={{ r: 2, fill: "#22d3ee" }} name="Historical Avg" />
             </LineChart>
           </ResponsiveContainer>
         </div>

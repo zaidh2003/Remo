@@ -134,24 +134,55 @@ export function subscribeToTasks(cb: (tasks: Task[]) => void) {
 
 // ── INVENTORY ─────────────────────────────────────────────────────────────────
 
-export async function getInventory(): Promise<InventoryItem[]> {
-  const snap = await getDocs(collection(db, "inventory"));
+/**
+ * Calculate inventory status based on current stock vs minimum stock.
+ * - critical: ≤ 50% of minimum
+ * - low: > 50% but < 100% of minimum
+ * - in-stock: ≥ 100% of minimum
+ */
+function calculateInventoryStatus(currentStock: number, minimumStock: number): InventoryItem["status"] {
+  const ratio = currentStock / minimumStock;
+  if (ratio <= 0.5) return "critical";
+  if (ratio < 1.0) return "low";
+  return "in-stock";
+}
+
+export async function getInventory(branchId?: string): Promise<InventoryItem[]> {
+  const q = branchId
+    ? query(collection(db, "inventory"), where("branchId", "==", branchId))
+    : query(collection(db, "inventory"));
+  const snap = await getDocs(q);
   return snap.docs
     .map((d) => ({ id: d.id, ...d.data() } as InventoryItem))
     .sort((a, b) => a.category.localeCompare(b.category));
 }
 
-export async function saveInventoryItem(item: Omit<InventoryItem, "id">): Promise<string> {
-  const ref = await addDoc(collection(db, "inventory"), { ...item, updatedAt: serverTimestamp() });
+export async function saveInventoryItem(item: Omit<InventoryItem, "id" | "updatedAt">): Promise<string> {
+  const status = calculateInventoryStatus(item.currentStock, item.minimumStock);
+  const ref = await addDoc(collection(db, "inventory"), { 
+    ...item, 
+    status,
+    updatedAt: serverTimestamp() 
+  });
   return ref.id;
 }
 
 export async function updateInventoryItem(id: string, data: Partial<InventoryItem>): Promise<void> {
   const updates: any = { ...data, updatedAt: serverTimestamp() };
-  if (data.quantity !== undefined && data.minStock !== undefined) {
-    const ratio = data.quantity / data.minStock;
-    updates.status = ratio <= 0.3 ? "critical" : ratio <= 0.7 ? "low" : "in-stock";
+  
+  // Recalculate status if stock values changed
+  if (data.currentStock !== undefined || data.minimumStock !== undefined) {
+    // Need to fetch current values if only one is being updated
+    const docRef = doc(db, "inventory", id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const current = docSnap.data() as InventoryItem;
+      const newCurrentStock = data.currentStock ?? current.currentStock;
+      const newMinimumStock = data.minimumStock ?? current.minimumStock;
+      updates.status = calculateInventoryStatus(newCurrentStock, newMinimumStock);
+    }
   }
+  
   await updateDoc(doc(db, "inventory", id), updates);
 }
 
@@ -159,13 +190,68 @@ export async function deleteInventoryItem(id: string): Promise<void> {
   await deleteDoc(doc(db, "inventory", id));
 }
 
-export function subscribeToInventory(cb: (items: InventoryItem[]) => void) {
-  return onSnapshot(collection(db, "inventory"), (snap) => {
+export function subscribeToInventory(branchId: string, cb: (items: InventoryItem[]) => void) {
+  const q = query(collection(db, "inventory"), where("branchId", "==", branchId));
+  return onSnapshot(q, (snap) => {
     const sorted = snap.docs
       .map((d) => ({ id: d.id, ...d.data() } as InventoryItem))
       .sort((a, b) => a.category.localeCompare(b.category));
     cb(sorted);
   });
+}
+
+/**
+ * Seed initial inventory data for a branch.
+ * Creates 18 predefined items across 7 categories.
+ * Only seeds if the branch has no inventory items yet.
+ */
+export async function seedInventoryData(branchId: string): Promise<void> {
+  // Check if inventory already exists for this branch
+  const existing = await getInventory(branchId);
+  if (existing.length > 0) {
+    console.log("Inventory already seeded for branch:", branchId);
+    return;
+  }
+
+  const seedItems: Omit<InventoryItem, "id" | "status" | "updatedAt">[] = [
+    // Meat & Seafood
+    { name: "Chicken Breast", category: "Meat & Seafood", currentStock: 25, minimumStock: 30, unit: "kg", branchId },
+    { name: "Salmon Fillet", category: "Meat & Seafood", currentStock: 12, minimumStock: 20, unit: "kg", branchId },
+    { name: "Ground Beef", category: "Meat & Seafood", currentStock: 8, minimumStock: 25, unit: "kg", branchId },
+    
+    // Vegetables & Fruits
+    { name: "Tomatoes", category: "Vegetables & Fruits", currentStock: 15, minimumStock: 20, unit: "kg", branchId },
+    { name: "Lettuce", category: "Vegetables & Fruits", currentStock: 10, minimumStock: 15, unit: "kg", branchId },
+    { name: "Onions", category: "Vegetables & Fruits", currentStock: 18, minimumStock: 25, unit: "kg", branchId },
+    
+    // Dairy & Eggs
+    { name: "Milk", category: "Dairy & Eggs", currentStock: 40, minimumStock: 50, unit: "L", branchId },
+    { name: "Eggs", category: "Dairy & Eggs", currentStock: 120, minimumStock: 200, unit: "units", branchId },
+    { name: "Cheese", category: "Dairy & Eggs", currentStock: 8, minimumStock: 15, unit: "kg", branchId },
+    
+    // Dry Goods
+    { name: "Flour", category: "Dry Goods", currentStock: 45, minimumStock: 50, unit: "kg", branchId },
+    { name: "Rice", category: "Dry Goods", currentStock: 30, minimumStock: 40, unit: "kg", branchId },
+    { name: "Pasta", category: "Dry Goods", currentStock: 22, minimumStock: 30, unit: "kg", branchId },
+    
+    // Beverages
+    { name: "Orange Juice", category: "Beverages", currentStock: 25, minimumStock: 30, unit: "L", branchId },
+    { name: "Coffee Beans", category: "Beverages", currentStock: 6, minimumStock: 10, unit: "kg", branchId },
+    { name: "Bottled Water", category: "Beverages", currentStock: 80, minimumStock: 100, unit: "units", branchId },
+    
+    // Cleaning Supplies
+    { name: "Dish Soap", category: "Cleaning Supplies", currentStock: 8, minimumStock: 15, unit: "L", branchId },
+    { name: "Sanitizer", category: "Cleaning Supplies", currentStock: 5, minimumStock: 12, unit: "L", branchId },
+    
+    // Disposables
+    { name: "Paper Towels", category: "Disposables", currentStock: 30, minimumStock: 50, unit: "rolls", branchId },
+  ];
+
+  // Add all seed items
+  const promises = seedItems.map(item => saveInventoryItem(item));
+  await Promise.all(promises);
+  
+  console.log(`Seeded ${seedItems.length} inventory items for branch:`, branchId);
 }
 
 // ── FORECAST ──────────────────────────────────────────────────────────────────

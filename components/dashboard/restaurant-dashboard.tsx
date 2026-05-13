@@ -8,61 +8,44 @@ import { EmergencyBoard } from "./emergency-board"
 import { TaxiManagement } from "./taxi-management"
 import { StaffDirectory } from "./staff-directory"
 import { InventoryManagement } from "./inventory-management"
+import { TaskBoard } from "./task-board"
 import { RoleManagement } from "@/components/auth/role-management"
 import { UserManagement } from "@/components/dashboard/user-management"
 import { ShortageAlerts } from "@/components/dashboard/shortage-alerts"
 import { SwapRequests } from "@/components/dashboard/swap-requests"
 import { BranchManagement } from "@/components/dashboard/branch-management"
-import { initialShifts } from "@/lib/mock-data"
-import type { Shift } from "@/lib/types"
+import { DemoDataSeeder } from "@/components/dashboard/demo-data-seeder"
 import type { UserProfile } from "@/lib/services/user-service"
 import Image from "next/image"
 import { Bell, LogOut } from "lucide-react"
-import { optimizeSchedule } from "@/lib/services/groq-service"
-import { staffData } from "@/lib/mock-data"
 import { ProfilePanel } from "./profile-panel"
 
 export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile | null }) {
   const [activeTab, setActiveTab] = useState("dashboard")
-  const [shifts, setShifts] = useState<Shift[]>(initialShifts)
-  const [isOptimizing, setIsOptimizing] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
-
-  const handleOptimize = async () => {
-    setIsOptimizing(true)
-    try {
-      const optimized = await optimizeSchedule(shifts, staffData)
-      // Groq returns updated status fields; merge back safely
-      const merged = shifts.map((s) => {
-        const updated = optimized.find((o) => o.id === s.id)
-        return updated ? { ...s, status: updated.status } : s
-      }) as Shift[]
-      setShifts(merged)
-    } catch (err) {
-      console.error("Groq optimize failed:", err)
-      // Fallback: mark all as optimal
-      setShifts(shifts.map((s) => ({ ...s, status: "optimal" as const })))
-    } finally {
-      setIsOptimizing(false)
-    }
-  }
 
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
         return <DashboardOverview onNavigate={setActiveTab} />
       case "scheduler":
+        return <WeeklyScheduler />
+      case "tasks":
         return (
-          <WeeklyScheduler
-            shifts={shifts}
-            isOptimizing={isOptimizing}
-            onOptimize={handleOptimize}
-          />
+          <div className="max-w-6xl mx-auto">
+            <TaskBoard />
+          </div>
         )
       case "emergencies":
         return <EmergencyBoard />
       case "taxi":
         return <TaxiManagement />
+      case "inventory":
+        return (
+          <div className="max-w-6xl mx-auto">
+            <InventoryManagement />
+          </div>
+        )
       case "staff":
         return <StaffDirectory />
       case "settings":
@@ -92,7 +75,8 @@ export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile 
         )
       case "branches":
         return (
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-5xl mx-auto space-y-6">
+            <DemoDataSeeder />
             <BranchManagement />
           </div>
         )
@@ -105,8 +89,10 @@ export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile 
     switch (activeTab) {
       case "dashboard": return "Dashboard Overview"
       case "scheduler": return "Smart Scheduler"
+      case "tasks": return "Task Board"
       case "emergencies": return "Emergency Shifts & Swaps"
       case "taxi": return "Transport Management"
+      case "inventory": return "Inventory Management"
       case "staff": return "Staff Directory"
       case "settings": return "System Settings"
       case "users": return "User Management"

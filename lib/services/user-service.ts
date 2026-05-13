@@ -88,6 +88,15 @@ export async function getAllUsers(): Promise<UserProfile[]> {
   return snap.docs.map((d) => d.data() as UserProfile);
 }
 
+/** Fetch users filtered by role — returns objects with id and branchId aliases for notification logic */
+export async function getUsersByRole(role: AppRole): Promise<Array<{ id: string; branchId: string } & UserProfile>> {
+  const snap = await getDocs(query(collection(db, "users"), where("role", "==", role)));
+  return snap.docs.map((d) => {
+    const data = d.data() as UserProfile;
+    return { ...data, id: data.uid, branchId: data.branch ?? "" };
+  });
+}
+
 /** Update a user's role — Firestore rules allow this only if requester is ADMIN */
 export async function updateUserRole(uid: string, role: AppRole): Promise<void> {
   await updateDoc(doc(db, "users", uid), { role });

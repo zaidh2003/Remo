@@ -31,6 +31,7 @@ export const metadata: Metadata = {
 
 import { AuthProvider } from '@/components/providers/auth-provider';
 import { LanguageProvider } from '@/components/providers/language-provider';
+import { Toaster } from 'sonner';
 
 export default function RootLayout({
   children,
@@ -45,6 +46,7 @@ export default function RootLayout({
             {children}
           </AuthProvider>
         </LanguageProvider>
+        <Toaster richColors position="top-right" />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

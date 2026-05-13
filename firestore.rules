@@ -2,130 +2,192 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper: check if the requesting user is an ADMIN
+    // ── Helpers ────────────────────────────────────────────────────────────────
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
     function isAdmin() {
-      return request.auth != null
+      return isSignedIn()
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "ADMIN";
+        && userDoc().role == "ADMIN";
     }
 
-    // Helper: check if any ADMIN exists in the system
-    function noAdminExists() {
-      // We check the requesting user's own doc — if they are the only user
-      // and no admin exists, allow self-promotion
-      return !exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role != "ADMIN";
+    function isManagerOrAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && userDoc().role in ["ADMIN", "MANAGER"];
     }
 
+
+    // ── Users ──────────────────────────────────────────────────────────────────
+    // • Anyone signed in can read all user profiles (needed for Staff Directory,
+    //   swap request display, shortage alert matching, etc.)
+    // • Users can create their own doc on first sign-in.
+    // • ADMIN can update anyone. Managers can update employees in their branch
+    //   (name, phone, position, branch) but NOT the role field.
+    // • Only ADMIN can delete user docs.
     match /users/{userId} {
-      allow read: if request.auth != null;
+      allow read: if isSignedIn();
 
-      allow create: if request.auth != null && request.auth.uid == userId;
+      allow create: if isSignedIn() && request.auth.uid == userId;
 
-      allow update: if request.auth != null && (
-        // ADMIN can update anyone
+      allow update: if isSignedIn() && (
+        // ADMIN can do anything
         isAdmin()
-        // User can update their own non-role fields
-        || (request.auth.uid == userId
-            && !("role" in request.resource.data.diff(resource.data).affectedKeys()))
-        // Self-promotion to ADMIN allowed ONLY when updating own doc to ADMIN
-        // and the role is currently not ADMIN (bootstrap case)
-        || (request.auth.uid == userId
-            && request.resource.data.role == "ADMIN"
-            && resource.data.role != "ADMIN")
+        // MANAGER can edit employees in their own branch — but NOT role
+        || (
+          userDoc().role == "MANAGER"
+          && resource.data.branch == userDoc().branch
+          && resource.data.role == "EMPLOYEE"
+          && !("role" in request.resource.data.diff(resource.data).affectedKeys())
+        )
+        // User can update their own non-role fields (profile panel)
+        || (
+          request.auth.uid == userId
+          && !("role" in request.resource.data.diff(resource.data).affectedKeys())
+        )
+        // Bootstrap: allow first ADMIN self-promotion
+        || (
+          request.auth.uid == userId
+          && request.resource.data.role == "ADMIN"
+          && resource.data.role != "ADMIN"
+        )
       );
 
       allow delete: if isAdmin();
     }
 
-    // Taxi requests: all authenticated users can read/create; managers/admins can update/delete
-    match /taxis/{requestId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null && (
-        exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ["ADMIN", "MANAGER"]
-      );
-      allow delete: if isAdmin();
-    }
-
-    // Shortage alerts: managers/admins create; employees can create for sick leave; all read; managers update status
-    match /shortageAlerts/{alertId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ["ADMIN", "MANAGER"];
-      allow delete: if isAdmin();
-    }
-
-    // Shortage responses: employees create their own; managers/admins read all
-    match /shortageResponses/{responseId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if isAdmin();
-    }
-
-    // Shift swap requests: employees create; managers approve/reject
-    match /swapRequests/{swapId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null && (
-        exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ["ADMIN", "MANAGER"]
-      );
-      allow delete: if isAdmin();
-    }
-
-    // Shifts, tasks, inventory, forecast, notifications — authenticated users
+    // ── Shifts ─────────────────────────────────────────────────────────────────
+    // • All signed-in users can read (employees need to see their own shifts).
+    // • ADMIN can write any shift.
+    // • MANAGER can only write shifts in their own branch.
     match /shifts/{id} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ["ADMIN", "MANAGER"];
+      allow read: if isSignedIn();
+      allow create: if isManagerOrAdmin() && (
+        isAdmin() || request.resource.data.branchId == userDoc().branch
+      );
+      allow update, delete: if isManagerOrAdmin() && (
+        isAdmin() || resource.data.branchId == userDoc().branch
+      );
     }
 
+    // ── Tasks ──────────────────────────────────────────────────────────────────
+    // • All read. ADMIN/MANAGER write.
     match /tasks/{id} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ["ADMIN", "MANAGER"];
+      allow read: if isSignedIn();
+      allow write: if isManagerOrAdmin();
     }
 
+    // ── Inventory ──────────────────────────────────────────────────────────────
+    // • All signed-in users can read inventory.
+    // • ADMIN can write any inventory item.
+    // • MANAGER can only write inventory items for their own branch.
     match /inventory/{id} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ["ADMIN", "MANAGER"];
+      allow read: if isSignedIn();
+      allow create: if isManagerOrAdmin()
+        && request.resource.data.branchId is string
+        && (isAdmin() || request.resource.data.branchId == userDoc().branch);
+      allow update, delete: if isManagerOrAdmin()
+        && (isAdmin() || resource.data.branchId == userDoc().branch);
     }
 
-    match /forecast/{id} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ["ADMIN", "MANAGER"];
+    // ── Branches ───────────────────────────────────────────────────────────────
+    // • All signed-in users can read (needed for dropdowns, etc.).
+    // • Only ADMIN can create/update/delete branches.
+    match /branches/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
+    // ── Shortage Alerts ────────────────────────────────────────────────────────
+    // • All signed-in users can read (employees need to see open alerts to respond).
+    // • All signed-in users can create (sick leave triggers a create from employees).
+    // • Only ADMIN or MANAGER can update status (FILLED / CANCELLED).
+    match /shortageAlerts/{alertId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isManagerOrAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Shortage Responses ─────────────────────────────────────────────────────
+    // • All signed-in users can read (managers review who responded).
+    // • Employees create their own response; they may update only their own.
+    match /shortageResponses/{responseId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (
+        isAdmin() || resource.data.employeeUid == request.auth.uid
+      );
+      allow delete: if isAdmin();
+    }
+
+    // ── Swap Requests ──────────────────────────────────────────────────────────
+    // • All signed-in users can read.
+    // • Any signed-in user can create (employee initiates the swap).
+    // • MANAGER or ADMIN can update status (approve/reject).
+    // • The requester can cancel their own PENDING request.
+    match /swapRequests/{swapId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (
+        isManagerOrAdmin()
+        || (request.auth.uid == resource.data.requesterId && resource.data.status == "PENDING")
+      );
+      allow delete: if isAdmin();
+    }
+
+    // ── Taxi Requests ──────────────────────────────────────────────────────────
+    // • All signed-in can read and create.
+    // • MANAGER/ADMIN can update (approve/reject). Employee can cancel their own.
+    match /taxis/{requestId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (
+        isManagerOrAdmin()
+        || request.auth.uid == resource.data.staffId
+      );
+      allow delete: if isAdmin();
+    }
+
+    // ── Notifications ──────────────────────────────────────────────────────────
+    // • Users can only read their own notifications or broadcast ("all") ones.
+    // • Anyone signed-in can create (system notifications from client actions).
+    // • Users can mark their own notifications as read (update).
     match /notifications/{id} {
-      allow read: if request.auth != null && (
+      allow read: if isSignedIn() && (
         resource.data.uid == request.auth.uid || resource.data.uid == "all"
       );
-      allow create: if request.auth != null;
-      allow update: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (
+        resource.data.uid == request.auth.uid || resource.data.uid == "all"
+      );
       allow delete: if isAdmin();
     }
 
-    // Branches: all authenticated users can read; managers/admins can write
-    match /branches/{id} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ["ADMIN", "MANAGER"];
+    // ── Forecast ───────────────────────────────────────────────────────────────
+    match /forecast/{id} {
+      allow read: if isSignedIn();
+      allow write: if isManagerOrAdmin();
     }
 
-    // Catch-all for other collections
+    // ── AI Cache ───────────────────────────────────────────────────────────────
+    // Only accessible via Firebase Admin SDK (Cloud Functions / server).
+    // No client access allowed.
+    match /aiCache/{cacheKey} {
+      allow read, write: if false;
+    }
+
+    // ── Catch-all ──────────────────────────────────────────────────────────────
+    // Deny everything not explicitly matched above.
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if false;
     }
   }
 }

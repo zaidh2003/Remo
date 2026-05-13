@@ -10,11 +10,28 @@ export interface WorkerSkill {
   level: SkillLevel
 }
 
+export interface AIWeights {
+  skillMatch: number        // 0-100: Weight for skill/zone matching
+  proficiency: number       // 0-100: Weight for proficiency level
+  workload: number          // 0-100: Weight for current workload
+  proximity: number         // 0-100: Weight for branch proximity
+  experience: number        // 0-100: Weight for recent zone experience
+}
+
+export const DEFAULT_AI_WEIGHTS: AIWeights = {
+  skillMatch: 40,
+  proficiency: 25,
+  workload: 20,
+  proximity: 10,
+  experience: 5,
+}
+
 export interface Branch {
   id: string
   name: string
   address?: string
   managerId?: string
+  aiWeights?: AIWeights    // Custom AI weights for this branch
   createdAt: any
 }
 
@@ -111,14 +128,25 @@ export interface DemandForecast {
   historicalActuals: number
 }
 
+export type InventoryCategory = 
+  | "Meat & Seafood" 
+  | "Vegetables & Fruits" 
+  | "Dairy & Eggs" 
+  | "Dry Goods" 
+  | "Beverages" 
+  | "Cleaning Supplies" 
+  | "Disposables"
+
 export interface InventoryItem {
   id: string
   name: string
-  category: string
-  quantity: number
+  category: InventoryCategory
+  currentStock: number
   unit: string
-  minStock: number
+  minimumStock: number
+  branchId: string
   status: "in-stock" | "low" | "critical"
+  updatedAt: any
 }
 
 export type SwapRequestStatus = "PENDING" | "APPROVED_BY_TARGET" | "APPROVED_BY_MANAGER" | "REJECTED"

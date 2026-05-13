@@ -1,10 +1,66 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Building2, Plus, Pencil, Trash2, Check, X, Loader2, MapPin, User } from "lucide-react"
+import { Building2, Plus, Pencil, Trash2, Check, X, Loader2, MapPin, User, Brain, Sliders, Database } from "lucide-react"
 import { subscribeToBranches, saveBranch, updateBranch, deleteBranch } from "@/lib/services/data-service"
 import { getAllUsers, type UserProfile } from "@/lib/services/user-service"
-import type { Branch } from "@/lib/types"
+import type { Branch, AIWeights } from "@/lib/types"
+import { DEFAULT_AI_WEIGHTS } from "@/lib/types"
+import { seedAllData } from "@/lib/services/seed-service"
+import { toast } from "sonner"
+
+function AIWeightsConfig({ weights, onChange }: {
+  weights: AIWeights; onChange: (weights: AIWeights) => void
+}) {
+  const total = weights.skillMatch + weights.proficiency + weights.workload + weights.proximity + weights.experience
+  const isValid = total === 100
+
+  const updateWeight = (key: keyof AIWeights, value: number) => {
+    onChange({ ...weights, [key]: Math.max(0, Math.min(100, value)) })
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+          <Brain className="h-3.5 w-3.5" />
+          AI Decision Weights
+        </label>
+        <span className={`text-xs font-bold ${isValid ? 'text-success' : 'text-destructive'}`}>
+          Total: {total}%
+        </span>
+      </div>
+      <div className="space-y-2 bg-muted/30 rounded-lg p-3">
+        {[
+          { key: 'skillMatch' as const, label: 'Skill/Zone Match', desc: 'How well skills match the required zone' },
+          { key: 'proficiency' as const, label: 'Proficiency Level', desc: 'Expert > Intermediate > Beginner' },
+          { key: 'workload' as const, label: 'Current Workload', desc: 'Prefer less busy employees' },
+          { key: 'proximity' as const, label: 'Branch Proximity', desc: 'Distance to branch location' },
+          { key: 'experience' as const, label: 'Recent Experience', desc: 'Recent work in this zone' },
+        ].map(({ key, label, desc }) => (
+          <div key={key} className="space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium">{label}</span>
+              <span className="text-xs font-bold text-primary">{weights[key]}%</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={weights[key]}
+              onChange={(e) => updateWeight(key, parseInt(e.target.value))}
+              className="w-full h-2 bg-background rounded-lg appearance-none cursor-pointer accent-primary"
+            />
+            <p className="text-[10px] text-muted-foreground">{desc}</p>
+          </div>
+        ))}
+      </div>
+      {!isValid && (
+        <p className="text-xs text-destructive">⚠️ Weights must total exactly 100%</p>
+      )}
+    </div>
+  )
+}
 
 function BranchForm({ branch, managers, onClose }: {
   branch?: Branch; managers: UserProfile[]; onClose: () => void
@@ -12,17 +68,26 @@ function BranchForm({ branch, managers, onClose }: {
   const [name, setName]         = useState(branch?.name ?? "")
   const [address, setAddress]   = useState(branch?.address ?? "")
   const [managerId, setManager] = useState(branch?.managerId ?? "")
+  const [aiWeights, setAIWeights] = useState<AIWeights>(branch?.aiWeights ?? DEFAULT_AI_WEIGHTS)
+  const [showAdvanced, setShowAdvanced] = useState(false)
   const [saving, setSaving]     = useState(false)
   const [error, setError]       = useState("")
 
   const handleSave = async () => {
     if (!name.trim()) { setError("Branch name is required."); return }
+    
+    const total = aiWeights.skillMatch + aiWeights.proficiency + aiWeights.workload + aiWeights.proximity + aiWeights.experience
+    if (total !== 100) {
+      setError("AI weights must total exactly 100%")
+      return
+    }
+    
     setSaving(true); setError("")
     try {
       if (branch) {
-        await updateBranch(branch.id, { name: name.trim(), address: address.trim(), managerId })
+        await updateBranch(branch.id, { name: name.trim(), address: address.trim(), managerId, aiWeights })
       } else {
-        await saveBranch({ name: name.trim(), address: address.trim(), managerId })
+        await saveBranch({ name: name.trim(), address: address.trim(), managerId, aiWeights })
       }
       onClose()
     } catch (e: any) { setError(e.message) }
@@ -32,7 +97,7 @@ function BranchForm({ branch, managers, onClose }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200"
+      <div className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-base flex items-center gap-2">
@@ -63,6 +128,22 @@ function BranchForm({ branch, managers, onClose }: {
               ))}
             </select>
           </div>
+
+          <div className="border-t pt-3">
+            <button
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Sliders className="h-4 w-4" />
+              Advanced: AI Decision Weights
+              <span className="text-xs">{showAdvanced ? '▼' : '▶'}</span>
+            </button>
+            {showAdvanced && (
+              <div className="mt-3">
+                <AIWeightsConfig weights={aiWeights} onChange={setAIWeights} />
+              </div>
+            )}
+          </div>
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
@@ -88,6 +169,7 @@ export function BranchManagement() {
   const [managers, setManagers] = useState<UserProfile[]>([])
   const [editBranch, setEditBranch] = useState<Branch | null>(null)
   const [showAdd, setShowAdd]       = useState(false)
+  const [seeding, setSeeding]       = useState<string | null>(null)
 
   useEffect(() => {
     const unsub = subscribeToBranches(setBranches)
@@ -99,6 +181,43 @@ export function BranchManagement() {
     if (!id) return "—"
     const m = managers.find((u) => u.uid === id)
     return m?.name || m?.email || "—"
+  }
+
+  const hasCustomWeights = (branch: Branch) => {
+    if (!branch.aiWeights) return false
+    const defaults = DEFAULT_AI_WEIGHTS
+    return Object.keys(defaults).some(key => 
+      branch.aiWeights![key as keyof AIWeights] !== defaults[key as keyof AIWeights]
+    )
+  }
+
+  const handleSeedData = async (branch: Branch) => {
+    if (!confirm(`Seed ${branch.name} with realistic test data? This will add:\n• 10 staff members\n• ~250 shifts\n• 17 tasks\n• 18 inventory items`)) {
+      return
+    }
+
+    setSeeding(branch.id)
+    try {
+      const result = await seedAllData({
+        branchId: branch.id,
+        branchName: branch.name,
+        includeShifts: true,
+        includeTasks: true,
+        includeInventory: true,
+        includeStaff: false, // Staff creation requires Firebase Auth
+      })
+
+      if (result.success) {
+        toast.success(result.message)
+        toast.info(`Added: ${result.details.shifts} shifts, ${result.details.tasks} tasks, ${result.details.inventory} inventory items`)
+      } else {
+        toast.error(result.message)
+      }
+    } catch (error: any) {
+      toast.error(`Failed to seed data: ${error.message}`)
+    } finally {
+      setSeeding(null)
+    }
   }
 
   return (
@@ -153,9 +272,34 @@ export function BranchManagement() {
                   </button>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <User className="h-3.5 w-3.5" />
-                <span>Manager: <span className="text-foreground font-medium">{getManagerName(branch.managerId)}</span></span>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <User className="h-3.5 w-3.5" />
+                  <span>Manager: <span className="text-foreground font-medium">{getManagerName(branch.managerId)}</span></span>
+                </div>
+                {hasCustomWeights(branch) && (
+                  <div className="flex items-center gap-2 text-xs text-primary">
+                    <Brain className="h-3.5 w-3.5" />
+                    <span className="font-medium">Custom AI weights configured</span>
+                  </div>
+                )}
+                <button
+                  onClick={() => handleSeedData(branch)}
+                  disabled={seeding === branch.id}
+                  className="w-full mt-2 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 text-blue-600 text-xs font-semibold hover:bg-blue-500/20 transition-colors disabled:opacity-60"
+                >
+                  {seeding === branch.id ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Seeding...
+                    </>
+                  ) : (
+                    <>
+                      <Database className="h-3.5 w-3.5" />
+                      Seed Test Data
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           ))}
