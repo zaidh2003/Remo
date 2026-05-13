@@ -1,6 +1,6 @@
 // Authentication and Authorization Types
 
-export type UserRole = 'admin' | 'manager' | 'chef' | 'server' | 'staff'
+export type UserRole = 'admin' | 'manager' | 'employee'
 
 export interface User {
   id: string
@@ -75,16 +75,10 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     { id: '7', name: 'Edit Schedules', description: 'Create and modify schedules', resource: 'schedules', action: 'update' },
     { id: '8', name: 'View Reports', description: 'Access analytics and reports', resource: 'reports', action: 'read' },
   ],
-  chef: [
-    { id: '9', name: 'View Tasks', description: 'View assigned kitchen tasks', resource: 'tasks', action: 'read' },
-    { id: '10', name: 'Update Tasks', description: 'Mark tasks complete', resource: 'tasks', action: 'update' },
-    { id: '11', name: 'View Inventory', description: 'Check ingredient levels', resource: 'inventory', action: 'read' },
-  ],
-  server: [
-    { id: '12', name: 'View Schedule', description: 'Check personal schedule', resource: 'schedule', action: 'read' },
-    { id: '13', name: 'View Tasks', description: 'View assigned tasks', resource: 'tasks', action: 'read' },
-  ],
-  staff: [
-    { id: '14', name: 'View Schedule', description: 'Check personal schedule', resource: 'schedule', action: 'read' },
+  employee: [
+    { id: '9', name: 'View Schedule', description: 'Check personal schedule', resource: 'schedule', action: 'read' },
+    { id: '10', name: 'View Tasks', description: 'View assigned tasks', resource: 'tasks', action: 'read' },
+    { id: '11', name: 'Update Tasks', description: 'Mark tasks complete', resource: 'tasks', action: 'update' },
+    { id: '12', name: 'Manage Swaps', description: 'Create swap requests', resource: 'swaps', action: 'create' },
   ],
 }

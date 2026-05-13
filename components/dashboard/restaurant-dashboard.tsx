@@ -139,7 +139,7 @@ export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile 
         <header className="mb-8 flex justify-between items-end">
           <div>
             <h2 className="text-3xl font-bold tracking-tight">{getPageTitle()}</h2>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-muted-foreground mt-1" suppressHydrationWarning>
               {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
             </p>
           </div>

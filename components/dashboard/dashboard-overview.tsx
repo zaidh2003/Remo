@@ -263,6 +263,10 @@ function ManagerQuickActions({ onNavigate }: { onNavigate?: (tab: string) => voi
 export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
   const { profile } = useAuth()
   const isEmployee = profile?.role === "EMPLOYEE"
+  
+  if (!profile) {
+    return <div className="flex justify-center p-8"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>
+  }
 
   if (isEmployee) {
     // Employee view: My Shifts + Quick Actions + Task Board

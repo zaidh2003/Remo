@@ -28,9 +28,9 @@ const defaultRoles: Role[] = [
   },
   {
     id: "3",
-    name: "chef",
-    description: "Manage kitchen and tasks",
-    permissions: rolePermissions.chef,
+    name: "employee",
+    description: "Standard staff member access",
+    permissions: rolePermissions.employee,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -103,7 +103,7 @@ export function RoleManagement({ onRoleUpdate }: RoleManagementProps) {
                   <p className="font-semibold capitalize">{role.name}</p>
                   <p className="text-xs text-muted-foreground">{role.permissions.length} permissions</p>
                 </div>
-                <div className="px-2 py-1 bg-sidebar rounded text-xs font-medium">
+                <div className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium">
                   {role.name}
                 </div>
               </div>
@@ -123,7 +123,7 @@ export function RoleManagement({ onRoleUpdate }: RoleManagementProps) {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setIsEditing(!isEditing)}
-                    className="p-2 hover:bg-sidebar rounded-lg transition-colors"
+                    className="p-2 hover:bg-muted rounded-lg transition-colors"
                   >
                     <Edit2 className="h-4 w-4" />
                   </button>
@@ -140,7 +140,7 @@ export function RoleManagement({ onRoleUpdate }: RoleManagementProps) {
                   {rolePermissions[selectedRole.name as UserRole].map((permission) => (
                     <div
                       key={permission.id}
-                      className="flex items-start gap-3 p-3 bg-sidebar rounded-lg"
+                      className="flex items-start gap-3 p-3 bg-muted/50 border border-border/50 rounded-lg"
                     >
                       <input
                         type="checkbox"
@@ -174,7 +174,7 @@ export function RoleManagement({ onRoleUpdate }: RoleManagementProps) {
                   </button>
                   <button
                     onClick={() => setIsEditing(false)}
-                    className="flex-1 flex items-center justify-center gap-2 bg-sidebar text-foreground px-4 py-2 rounded-lg hover:bg-sidebar/80 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 bg-muted text-foreground px-4 py-2 rounded-lg hover:bg-muted/80 transition-colors"
                   >
                     <X className="h-4 w-4" />
                     Cancel
@@ -207,7 +207,7 @@ export function RoleManagement({ onRoleUpdate }: RoleManagementProps) {
             </thead>
             <tbody>
               {roles.map((role) => (
-                <tr key={role.id} className="border-b border-border hover:bg-sidebar/50 transition-colors">
+                <tr key={role.id} className="border-b border-border hover:bg-muted/50 transition-colors">
                   <td className="py-3 px-3 font-medium capitalize">{role.name}</td>
                   {["create", "read", "update", "delete"].map((action) => {
                     const hasPermission = role.permissions.some(

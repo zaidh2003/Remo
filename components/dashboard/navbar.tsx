@@ -59,6 +59,7 @@ export function Navbar({ activeTab, setActiveTab, userRole }: LumaBarProps) {
             <motion.div key={item.id} className="relative flex flex-col items-center group">
               {/* Button */}
               <motion.button
+                aria-label={item.label}
                 onClick={() => setActiveTab(item.id)}
                 whileHover={{ scale: 1.15 }}
                 animate={{ scale: isActive ? 1.25 : 1 }}

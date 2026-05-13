@@ -1,0 +1,1282 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: workflow.spec.ts >> Manager Golden Path Workflow >> Manager completes extensive daily workflow across all modules
+- Location: e2e\workflow.spec.ts:11:7
+
+# Error details
+
+```
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByRole('heading', { name: 'Demand Forecast' })
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByRole('heading', { name: 'Demand Forecast' })
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img "REMO" [ref=e7]
+          - generic [ref=e8]:
+            - heading "REMO" [level=1] [ref=e9]
+            - paragraph [ref=e10]: Management System
+        - generic [ref=e11]:
+          - button [ref=e12]:
+            - img [ref=e13]
+          - generic "Your Profile" [ref=e17] [cursor=pointer]: S
+    - main [ref=e18]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - heading "Dashboard Overview" [level=2] [ref=e21]
+          - paragraph [ref=e22]: Thursday, May 14, 2026
+        - generic [ref=e23]:
+          - generic [ref=e24]: Welcome, Sarah Manager
+          - generic [ref=e25]: MANAGER
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - generic [ref=e29]:
+            - generic [ref=e30]:
+              - generic [ref=e31]: Active Staff
+              - img [ref=e32]
+            - generic [ref=e37]:
+              - generic [ref=e38]: "8"
+              - paragraph [ref=e39]: "Branch: Branch A"
+          - generic [ref=e40]:
+            - generic [ref=e41]:
+              - generic [ref=e42]: Shifts This Week
+              - img [ref=e43]
+            - generic [ref=e45]:
+              - generic [ref=e46]: "74"
+              - paragraph [ref=e47]: 2 vacant
+          - generic [ref=e48]:
+            - generic [ref=e49]:
+              - generic [ref=e50]: Labor Cost Today
+              - img [ref=e51]
+            - generic [ref=e53]:
+              - generic [ref=e54]: $1,247
+              - paragraph [ref=e55]: –8% vs budget
+          - generic [ref=e56]:
+            - generic [ref=e57]:
+              - generic [ref=e58]: Open Notifications
+              - img [ref=e59]
+            - generic [ref=e62]:
+              - generic [ref=e63]: "13"
+              - paragraph [ref=e64]: Unread alerts
+        - generic [ref=e65]:
+          - generic [ref=e66]:
+            - generic [ref=e68]:
+              - generic [ref=e69]:
+                - generic [ref=e70]: Predicted Customer Footfall
+                - generic [ref=e71]: Today's covers — predicted vs historical
+              - generic [ref=e72]:
+                - button "Add Entry" [ref=e73]:
+                  - img [ref=e74]
+                  - text: Add Entry
+                - button "AI Insight" [ref=e75]:
+                  - img [ref=e76]
+                  - text: AI Insight
+            - generic [ref=e79]:
+              - generic [ref=e82]:
+                - img [ref=e83]:
+                  - generic [ref=e88]:
+                    - generic [ref=e90]: 10:00
+                    - generic [ref=e92]: 11:00
+                    - generic [ref=e94]: 11:00
+                    - generic [ref=e96]: 12:00
+                    - generic [ref=e98]: 13:00
+                    - generic [ref=e100]: 14:00
+                    - generic [ref=e102]: 15:00
+                    - generic [ref=e104]: 16:00
+                    - generic [ref=e106]: 17:00
+                    - generic [ref=e108]: 17:00
+                    - generic [ref=e110]: 18:00
+                    - generic [ref=e112]: 19:00
+                    - generic [ref=e114]: 20:00
+                    - generic [ref=e116]: 21:00
+                    - generic [ref=e118]: 22:00
+                  - generic [ref=e120]:
+                    - generic [ref=e122]: "0"
+                    - generic [ref=e124]: "40"
+                    - generic [ref=e126]: "80"
+                    - generic [ref=e128]: "120"
+                    - generic [ref=e130]: "160"
+                - list [ref=e216]:
+                  - listitem [ref=e217]:
+                    - img [ref=e218]
+                    - text: Predicted
+                  - listitem [ref=e220]:
+                    - img [ref=e221]
+                    - text: Historical Avg
+              - generic [ref=e223]:
+                - generic [ref=e224]:
+                  - paragraph [ref=e225]: Lunch Peak
+                  - paragraph [ref=e226]: ~118
+                - generic [ref=e227]:
+                  - paragraph [ref=e228]: Dinner Peak
+                  - paragraph [ref=e229]: ~142
+                - generic [ref=e230]:
+                  - paragraph [ref=e231]: Total Predicted
+                  - paragraph [ref=e232]: "3039"
+          - generic [ref=e233]:
+            - generic [ref=e235]: Quick Actions
+            - generic [ref=e236]:
+              - button "Generate Weekly Schedule" [ref=e237] [cursor=pointer]
+              - button "Review Emergency Shifts" [ref=e238] [cursor=pointer]
+              - button "Update Staff Directory" [ref=e239] [cursor=pointer]
+              - button "View Shortage Alerts" [ref=e240] [cursor=pointer]
+        - generic [ref=e241]:
+          - generic [ref=e244]: Task Board
+          - generic [ref=e246]:
+            - generic [ref=e247]:
+              - generic [ref=e248]:
+                - text: Preparation
+                - generic [ref=e249]: "12"
+              - generic [ref=e250]:
+                - generic [ref=e251]:
+                  - generic [ref=e252]:
+                    - heading "Set up bar station" [level=4] [ref=e253]
+                    - generic [ref=e254]:
+                      - generic [ref=e255]: medium
+                      - button "Mark complete" [ref=e256]:
+                        - img [ref=e257]
+                      - button "Delete" [ref=e260]:
+                        - img [ref=e261]
+                  - generic [ref=e264]:
+                    - generic [ref=e265]:
+                      - img [ref=e266]
+                      - text: 10:00-11:00
+                    - generic [ref=e269]:
+                      - img [ref=e270]
+                      - text: Bar
+                    - generic [ref=e273]:
+                      - img [ref=e274]
+                      - text: James Waiter
+                - generic [ref=e277]:
+                  - generic [ref=e278]:
+                    - heading "Prepare salad base" [level=4] [ref=e279]
+                    - generic [ref=e280]:
+                      - generic [ref=e281]: low
+                      - button "Mark complete" [ref=e282]:
+                        - img [ref=e283]
+                      - button "Delete" [ref=e286]:
+                        - img [ref=e287]
+                  - generic [ref=e290]:
+                    - generic [ref=e291]:
+                      - img [ref=e292]
+                      - text: 09:30-10:30
+                    - generic [ref=e295]:
+                      - img [ref=e296]
+                      - text: Salad
+                    - generic [ref=e299]:
+                      - img [ref=e300]
+                      - text: Lisa Cook
+                - generic [ref=e303]:
+                  - generic [ref=e304]:
+                    - heading "Set up bar station" [level=4] [ref=e305]
+                    - generic [ref=e306]:
+                      - generic [ref=e307]: medium
+                      - button "Mark complete" [ref=e308]:
+                        - img [ref=e309]
+                      - button "Delete" [ref=e312]:
+                        - img [ref=e313]
+                  - generic [ref=e316]:
+                    - generic [ref=e317]:
+                      - img [ref=e318]
+                      - text: 10:00-11:00
+                    - generic [ref=e321]:
+                      - img [ref=e322]
+                      - text: Bar
+                    - generic [ref=e325]:
+                      - img [ref=e326]
+                      - text: Nayan Joshy Maniyath Joshy
+                - generic [ref=e329]:
+                  - generic [ref=e330]:
+                    - heading "Prep vegetables for lunch service" [level=4] [ref=e331]
+                    - generic [ref=e332]:
+                      - generic [ref=e333]: high
+                      - button "Mark complete" [ref=e334]:
+                        - img [ref=e335]
+                      - button "Delete" [ref=e338]:
+                        - img [ref=e339]
+                  - generic [ref=e342]:
+                    - generic [ref=e343]:
+                      - img [ref=e344]
+                      - text: 08:00-10:00
+                    - generic [ref=e347]:
+                      - img [ref=e348]
+                      - text: Kitchen
+                    - generic [ref=e351]:
+                      - img [ref=e352]
+                      - text: andrew trumph
+                - generic [ref=e355]:
+                  - generic [ref=e356]:
+                    - heading "Set up bar station" [level=4] [ref=e357]
+                    - generic [ref=e358]:
+                      - generic [ref=e359]: medium
+                      - button "Mark complete" [ref=e360]:
+                        - img [ref=e361]
+                      - button "Delete" [ref=e364]:
+                        - img [ref=e365]
+                  - generic [ref=e368]:
+                    - generic [ref=e369]:
+                      - img [ref=e370]
+                      - text: 10:00-11:00
+                    - generic [ref=e373]:
+                      - img [ref=e374]
+                      - text: Bar
+                    - generic [ref=e377]:
+                      - img [ref=e378]
+                      - text: Nayan Joshy Maniyath Joshy
+                - generic [ref=e381]:
+                  - generic [ref=e382]:
+                    - heading "Marinate proteins overnight" [level=4] [ref=e383]
+                    - generic [ref=e384]:
+                      - generic [ref=e385]: high
+                      - button "Mark complete" [ref=e386]:
+                        - img [ref=e387]
+                      - button "Delete" [ref=e390]:
+                        - img [ref=e391]
+                  - generic [ref=e394]:
+                    - generic [ref=e395]:
+                      - img [ref=e396]
+                      - text: 09:00-10:00
+                    - generic [ref=e399]:
+                      - img [ref=e400]
+                      - text: Meat
+                    - generic [ref=e403]:
+                      - img [ref=e404]
+                      - text: Test User
+                - generic [ref=e407]:
+                  - generic [ref=e408]:
+                    - heading "Marinate proteins" [level=4] [ref=e409]
+                    - generic [ref=e410]:
+                      - generic [ref=e411]: high
+                      - button "Mark complete" [ref=e412]:
+                        - img [ref=e413]
+                      - button "Delete" [ref=e416]:
+                        - img [ref=e417]
+                  - generic [ref=e420]:
+                    - generic [ref=e421]:
+                      - img [ref=e422]
+                      - text: 09:00-10:00
+                    - generic [ref=e425]:
+                      - img [ref=e426]
+                      - text: Meat
+                    - generic [ref=e429]:
+                      - img [ref=e430]
+                      - text: Emma Bartender
+                - generic [ref=e433]:
+                  - generic [ref=e434]:
+                    - heading "Prepare salad base" [level=4] [ref=e435]
+                    - generic [ref=e436]:
+                      - generic [ref=e437]: low
+                      - button "Mark complete" [ref=e438]:
+                        - img [ref=e439]
+                      - button "Delete" [ref=e442]:
+                        - img [ref=e443]
+                  - generic [ref=e446]:
+                    - generic [ref=e447]:
+                      - img [ref=e448]
+                      - text: 09:30-10:30
+                    - generic [ref=e451]:
+                      - img [ref=e452]
+                      - text: Salad
+                    - generic [ref=e455]:
+                      - img [ref=e456]
+                      - text: Employee User
+                - generic [ref=e459]:
+                  - generic [ref=e460]:
+                    - heading "Prep vegetables for lunch service" [level=4] [ref=e461]
+                    - generic [ref=e462]:
+                      - generic [ref=e463]: high
+                      - button "Mark complete" [ref=e464]:
+                        - img [ref=e465]
+                      - button "Delete" [ref=e468]:
+                        - img [ref=e469]
+                  - generic [ref=e472]:
+                    - generic [ref=e473]:
+                      - img [ref=e474]
+                      - text: 08:00-10:00
+                    - generic [ref=e477]:
+                      - img [ref=e478]
+                      - text: Kitchen
+                    - generic [ref=e481]:
+                      - img [ref=e482]
+                      - text: andrew trumph
+                - generic [ref=e485]:
+                  - generic [ref=e486]:
+                    - heading "Marinate proteins overnight" [level=4] [ref=e487]
+                    - generic [ref=e488]:
+                      - generic [ref=e489]: high
+                      - button "Mark complete" [ref=e490]:
+                        - img [ref=e491]
+                      - button "Delete" [ref=e494]:
+                        - img [ref=e495]
+                  - generic [ref=e498]:
+                    - generic [ref=e499]:
+                      - img [ref=e500]
+                      - text: 09:00-10:00
+                    - generic [ref=e503]:
+                      - img [ref=e504]
+                      - text: Meat
+                    - generic [ref=e507]:
+                      - img [ref=e508]
+                      - text: Test User
+                - generic [ref=e511]:
+                  - generic [ref=e512]:
+                    - heading "Prep vegetables for lunch" [level=4] [ref=e513]
+                    - generic [ref=e514]:
+                      - generic [ref=e515]: high
+                      - button "Mark complete" [ref=e516]:
+                        - img [ref=e517]
+                      - button "Delete" [ref=e520]:
+                        - img [ref=e521]
+                  - generic [ref=e524]:
+                    - generic [ref=e525]:
+                      - img [ref=e526]
+                      - text: 08:00-10:00
+                    - generic [ref=e529]:
+                      - img [ref=e530]
+                      - text: Kitchen
+                    - generic [ref=e533]:
+                      - img [ref=e534]
+                      - text: Marco Chef
+                - generic [ref=e537]:
+                  - generic [ref=e538]:
+                    - heading "Prepare salad base" [level=4] [ref=e539]
+                    - generic [ref=e540]:
+                      - generic [ref=e541]: low
+                      - button "Mark complete" [ref=e542]:
+                        - img [ref=e543]
+                      - button "Delete" [ref=e546]:
+                        - img [ref=e547]
+                  - generic [ref=e550]:
+                    - generic [ref=e551]:
+                      - img [ref=e552]
+                      - text: 09:30-10:30
+                    - generic [ref=e555]:
+                      - img [ref=e556]
+                      - text: Salad
+                    - generic [ref=e559]:
+                      - img [ref=e560]
+                      - text: Employee User
+                - button "Add task" [ref=e563]:
+                  - img [ref=e564]
+                  - text: Add task
+            - generic [ref=e565]:
+              - generic [ref=e566]:
+                - text: Cooking
+                - generic [ref=e567]: "9"
+              - generic [ref=e568]:
+                - generic [ref=e569]:
+                  - generic [ref=e570]:
+                    - heading "Cook lunch specials" [level=4] [ref=e571]
+                    - generic [ref=e572]:
+                      - generic [ref=e573]: high
+                      - button "Mark complete" [ref=e574]:
+                        - img [ref=e575]
+                      - button "Delete" [ref=e578]:
+                        - img [ref=e579]
+                  - generic [ref=e582]:
+                    - generic [ref=e583]:
+                      - img [ref=e584]
+                      - text: 11:00-13:00
+                    - generic [ref=e587]:
+                      - img [ref=e588]
+                      - text: Kitchen
+                    - generic [ref=e591]:
+                      - img [ref=e592]
+                      - text: Bhuvanesh kaushik
+                - generic [ref=e595]:
+                  - generic [ref=e596]:
+                    - heading "Prepare fries batches" [level=4] [ref=e597]
+                    - generic [ref=e598]:
+                      - generic [ref=e599]: medium
+                      - button "Mark complete" [ref=e600]:
+                        - img [ref=e601]
+                      - button "Delete" [ref=e604]:
+                        - img [ref=e605]
+                  - generic [ref=e608]:
+                    - generic [ref=e609]:
+                      - img [ref=e610]
+                      - text: 11:00-22:00
+                    - generic [ref=e613]:
+                      - img [ref=e614]
+                      - text: Fries
+                    - generic [ref=e617]:
+                      - img [ref=e618]
+                      - text: Emma Bartender
+                - generic [ref=e621]:
+                  - generic [ref=e622]:
+                    - heading "Grill steaks for dinner service" [level=4] [ref=e623]
+                    - generic [ref=e624]:
+                      - generic [ref=e625]: high
+                      - button "Mark complete" [ref=e626]:
+                        - img [ref=e627]
+                      - button "Delete" [ref=e630]:
+                        - img [ref=e631]
+                  - generic [ref=e634]:
+                    - generic [ref=e635]:
+                      - img [ref=e636]
+                      - text: 17:00-21:00
+                    - generic [ref=e639]:
+                      - img [ref=e640]
+                      - text: Grill
+                    - generic [ref=e643]:
+                      - img [ref=e644]
+                      - text: Marco Chef
+                - generic [ref=e647]:
+                  - generic [ref=e648]:
+                    - heading "Prepare fries batches" [level=4] [ref=e649]
+                    - generic [ref=e650]:
+                      - generic [ref=e651]: medium
+                      - button "Mark complete" [ref=e652]:
+                        - img [ref=e653]
+                      - button "Delete" [ref=e656]:
+                        - img [ref=e657]
+                  - generic [ref=e660]:
+                    - generic [ref=e661]:
+                      - img [ref=e662]
+                      - text: 11:00-22:00
+                    - generic [ref=e665]:
+                      - img [ref=e666]
+                      - text: Fries
+                    - generic [ref=e669]:
+                      - img [ref=e670]
+                      - text: Emma Bartender
+                - generic [ref=e673]:
+                  - generic [ref=e674]:
+                    - heading "Cook lunch specials" [level=4] [ref=e675]
+                    - generic [ref=e676]:
+                      - generic [ref=e677]: high
+                      - button "Mark complete" [ref=e678]:
+                        - img [ref=e679]
+                      - button "Delete" [ref=e682]:
+                        - img [ref=e683]
+                  - generic [ref=e686]:
+                    - generic [ref=e687]:
+                      - img [ref=e688]
+                      - text: 11:00-13:00
+                    - generic [ref=e691]:
+                      - img [ref=e692]
+                      - text: Kitchen
+                    - generic [ref=e695]:
+                      - img [ref=e696]
+                      - text: Marco Chef
+                - generic [ref=e699]:
+                  - generic [ref=e700]:
+                    - heading "Prepare fries batches" [level=4] [ref=e701]
+                    - generic [ref=e702]:
+                      - generic [ref=e703]: medium
+                      - button "Mark complete" [ref=e704]:
+                        - img [ref=e705]
+                      - button "Delete" [ref=e708]:
+                        - img [ref=e709]
+                  - generic [ref=e712]:
+                    - generic [ref=e713]:
+                      - img [ref=e714]
+                      - text: 11:00-22:00
+                    - generic [ref=e717]:
+                      - img [ref=e718]
+                      - text: Fries
+                    - generic [ref=e721]:
+                      - img [ref=e722]
+                      - text: Lisa Cook
+                - generic [ref=e725]:
+                  - generic [ref=e726]:
+                    - heading "Grill steaks for dinner service" [level=4] [ref=e727]
+                    - generic [ref=e728]:
+                      - generic [ref=e729]: high
+                      - button "Mark complete" [ref=e730]:
+                        - img [ref=e731]
+                      - button "Delete" [ref=e734]:
+                        - img [ref=e735]
+                  - generic [ref=e738]:
+                    - generic [ref=e739]:
+                      - img [ref=e740]
+                      - text: 17:00-21:00
+                    - generic [ref=e743]:
+                      - img [ref=e744]
+                      - text: Grill
+                    - generic [ref=e747]:
+                      - img [ref=e748]
+                      - text: Marco Chef
+                - generic [ref=e751]:
+                  - generic [ref=e752]:
+                    - heading "Cook lunch specials" [level=4] [ref=e753]
+                    - generic [ref=e754]:
+                      - generic [ref=e755]: high
+                      - button "Mark complete" [ref=e756]:
+                        - img [ref=e757]
+                      - button "Delete" [ref=e760]:
+                        - img [ref=e761]
+                  - generic [ref=e764]:
+                    - generic [ref=e765]:
+                      - img [ref=e766]
+                      - text: 11:00-13:00
+                    - generic [ref=e769]:
+                      - img [ref=e770]
+                      - text: Kitchen
+                    - generic [ref=e773]:
+                      - img [ref=e774]
+                      - text: Bhuvanesh kaushik
+                - generic [ref=e777]:
+                  - generic [ref=e778]:
+                    - heading "Grill steaks for dinner service" [level=4] [ref=e779]
+                    - generic [ref=e780]:
+                      - generic [ref=e781]: high
+                      - button "Mark complete" [ref=e782]:
+                        - img [ref=e783]
+                      - button "Delete" [ref=e786]:
+                        - img [ref=e787]
+                  - generic [ref=e790]:
+                    - generic [ref=e791]:
+                      - img [ref=e792]
+                      - text: 17:00-21:00
+                    - generic [ref=e795]:
+                      - img [ref=e796]
+                      - text: Grill
+                    - generic [ref=e799]:
+                      - img [ref=e800]
+                      - text: Emma Bartender
+                - button "Add task" [ref=e803]:
+                  - img [ref=e804]
+                  - text: Add task
+            - generic [ref=e805]:
+              - generic [ref=e806]:
+                - text: Serving
+                - generic [ref=e807]: "9"
+              - generic [ref=e808]:
+                - generic [ref=e809]:
+                  - generic [ref=e810]:
+                    - heading "Serve lunch customers" [level=4] [ref=e811]
+                    - generic [ref=e812]:
+                      - generic [ref=e813]: high
+                      - button "Mark complete" [ref=e814]:
+                        - img [ref=e815]
+                      - button "Delete" [ref=e818]:
+                        - img [ref=e819]
+                  - generic [ref=e822]:
+                    - generic [ref=e823]:
+                      - img [ref=e824]
+                      - text: 12:00-15:00
+                    - generic [ref=e827]:
+                      - img [ref=e828]
+                      - text: Waiter
+                    - generic [ref=e831]:
+                      - img [ref=e832]
+                      - text: James Waiter
+                - generic [ref=e835]:
+                  - generic [ref=e836]:
+                    - heading "Greet and seat dinner guests" [level=4] [ref=e837]
+                    - generic [ref=e838]:
+                      - generic [ref=e839]: high
+                      - button "Mark complete" [ref=e840]:
+                        - img [ref=e841]
+                      - button "Delete" [ref=e844]:
+                        - img [ref=e845]
+                  - generic [ref=e848]:
+                    - generic [ref=e849]:
+                      - img [ref=e850]
+                      - text: 17:00-22:00
+                    - generic [ref=e853]:
+                      - img [ref=e854]
+                      - text: Host
+                    - generic [ref=e857]:
+                      - img [ref=e858]
+                      - text: Carlos Dish
+                - generic [ref=e861]:
+                  - generic [ref=e862]:
+                    - heading "Serve lunch customers" [level=4] [ref=e863]
+                    - generic [ref=e864]:
+                      - generic [ref=e865]: high
+                      - button "Mark complete" [ref=e866]:
+                        - img [ref=e867]
+                      - button "Delete" [ref=e870]:
+                        - img [ref=e871]
+                  - generic [ref=e874]:
+                    - generic [ref=e875]:
+                      - img [ref=e876]
+                      - text: 12:00-15:00
+                    - generic [ref=e879]:
+                      - img [ref=e880]
+                      - text: Waiter
+                    - generic [ref=e883]:
+                      - img [ref=e884]
+                      - text: James Waiter
+                - generic [ref=e887]:
+                  - generic [ref=e888]:
+                    - heading "Mix cocktails for happy hour" [level=4] [ref=e889]
+                    - generic [ref=e890]:
+                      - generic [ref=e891]: medium
+                      - button "Mark complete" [ref=e892]:
+                        - img [ref=e893]
+                      - button "Delete" [ref=e896]:
+                        - img [ref=e897]
+                  - generic [ref=e900]:
+                    - generic [ref=e901]:
+                      - img [ref=e902]
+                      - text: 17:00-19:00
+                    - generic [ref=e905]:
+                      - img [ref=e906]
+                      - text: Bar
+                    - generic [ref=e909]:
+                      - img [ref=e910]
+                      - text: Carlos Dish
+                - generic [ref=e913]:
+                  - generic [ref=e914]:
+                    - heading "Greet and seat dinner guests" [level=4] [ref=e915]
+                    - generic [ref=e916]:
+                      - generic [ref=e917]: high
+                      - button "Mark complete" [ref=e918]:
+                        - img [ref=e919]
+                      - button "Delete" [ref=e922]:
+                        - img [ref=e923]
+                  - generic [ref=e926]:
+                    - generic [ref=e927]:
+                      - img [ref=e928]
+                      - text: 17:00-22:00
+                    - generic [ref=e931]:
+                      - img [ref=e932]
+                      - text: Host
+                    - generic [ref=e935]:
+                      - img [ref=e936]
+                      - text: Lisa Cook
+                - generic [ref=e939]:
+                  - generic [ref=e940]:
+                    - heading "Greet and seat dinner guests" [level=4] [ref=e941]
+                    - generic [ref=e942]:
+                      - generic [ref=e943]: high
+                      - button "Mark complete" [ref=e944]:
+                        - img [ref=e945]
+                      - button "Delete" [ref=e948]:
+                        - img [ref=e949]
+                  - generic [ref=e952]:
+                    - generic [ref=e953]:
+                      - img [ref=e954]
+                      - text: 17:00-22:00
+                    - generic [ref=e957]:
+                      - img [ref=e958]
+                      - text: Host
+                    - generic [ref=e961]:
+                      - img [ref=e962]
+                      - text: Lisa Cook
+                - generic [ref=e965]:
+                  - generic [ref=e966]:
+                    - heading "Serve lunch customers" [level=4] [ref=e967]
+                    - generic [ref=e968]:
+                      - generic [ref=e969]: high
+                      - button "Mark complete" [ref=e970]:
+                        - img [ref=e971]
+                      - button "Delete" [ref=e974]:
+                        - img [ref=e975]
+                  - generic [ref=e978]:
+                    - generic [ref=e979]:
+                      - img [ref=e980]
+                      - text: 12:00-15:00
+                    - generic [ref=e983]:
+                      - img [ref=e984]
+                      - text: Waiter
+                    - generic [ref=e987]:
+                      - img [ref=e988]
+                      - text: James Waiter
+                - generic [ref=e991]:
+                  - generic [ref=e992]:
+                    - heading "Mix cocktails for happy hour" [level=4] [ref=e993]
+                    - generic [ref=e994]:
+                      - generic [ref=e995]: medium
+                      - button "Mark complete" [ref=e996]:
+                        - img [ref=e997]
+                      - button "Delete" [ref=e1000]:
+                        - img [ref=e1001]
+                  - generic [ref=e1004]:
+                    - generic [ref=e1005]:
+                      - img [ref=e1006]
+                      - text: 17:00-19:00
+                    - generic [ref=e1009]:
+                      - img [ref=e1010]
+                      - text: Bar
+                    - generic [ref=e1013]:
+                      - img [ref=e1014]
+                      - text: Emma Bartender
+                - generic [ref=e1017]:
+                  - generic [ref=e1018]:
+                    - heading "Mix cocktails for happy hour" [level=4] [ref=e1019]
+                    - generic [ref=e1020]:
+                      - generic [ref=e1021]: medium
+                      - button "Mark complete" [ref=e1022]:
+                        - img [ref=e1023]
+                      - button "Delete" [ref=e1026]:
+                        - img [ref=e1027]
+                  - generic [ref=e1030]:
+                    - generic [ref=e1031]:
+                      - img [ref=e1032]
+                      - text: 17:00-19:00
+                    - generic [ref=e1035]:
+                      - img [ref=e1036]
+                      - text: Bar
+                    - generic [ref=e1039]:
+                      - img [ref=e1040]
+                      - text: Carlos Dish
+                - button "Add task" [ref=e1043]:
+                  - img [ref=e1044]
+                  - text: Add task
+            - generic [ref=e1045]:
+              - generic [ref=e1046]:
+                - text: Cleaning
+                - generic [ref=e1047]: "12"
+              - generic [ref=e1048]:
+                - generic [ref=e1049]:
+                  - generic [ref=e1050]:
+                    - heading "Sanitise bar area at close" [level=4] [ref=e1051]
+                    - generic [ref=e1052]:
+                      - generic [ref=e1053]: medium
+                      - button "Mark complete" [ref=e1054]:
+                        - img [ref=e1055]
+                      - button "Delete" [ref=e1058]:
+                        - img [ref=e1059]
+                  - generic [ref=e1062]:
+                    - generic [ref=e1063]:
+                      - img [ref=e1064]
+                      - text: 01:00-02:00
+                    - generic [ref=e1067]:
+                      - img [ref=e1068]
+                      - text: Bar
+                    - generic [ref=e1071]:
+                      - img [ref=e1072]
+                      - text: James Waiter
+                - generic [ref=e1075]:
+                  - generic [ref=e1076]:
+                    - heading "Clean kitchen surfaces post-lunch" [level=4] [ref=e1077]
+                    - generic [ref=e1078]:
+                      - generic [ref=e1079]: high
+                      - button "Mark complete" [ref=e1080]:
+                        - img [ref=e1081]
+                      - button "Delete" [ref=e1084]:
+                        - img [ref=e1085]
+                  - generic [ref=e1088]:
+                    - generic [ref=e1089]:
+                      - img [ref=e1090]
+                      - text: 15:00-16:00
+                    - generic [ref=e1093]:
+                      - img [ref=e1094]
+                      - text: Kitchen
+                    - generic [ref=e1097]:
+                      - img [ref=e1098]
+                      - text: Sophie Host
+                - generic [ref=e1101]:
+                  - generic [ref=e1102]:
+                    - heading "Sanitise bar area at close" [level=4] [ref=e1103]
+                    - generic [ref=e1104]:
+                      - generic [ref=e1105]: medium
+                      - button "Mark complete" [ref=e1106]:
+                        - img [ref=e1107]
+                      - button "Delete" [ref=e1110]:
+                        - img [ref=e1111]
+                  - generic [ref=e1114]:
+                    - generic [ref=e1115]:
+                      - img [ref=e1116]
+                      - text: 01:00-02:00
+                    - generic [ref=e1119]:
+                      - img [ref=e1120]
+                      - text: Bar
+                    - generic [ref=e1123]:
+                      - img [ref=e1124]
+                      - text: andrew trumph
+                - generic [ref=e1127]:
+                  - generic [ref=e1128]:
+                    - heading "Deep clean grill station" [level=4] [ref=e1129]
+                    - generic [ref=e1130]:
+                      - generic [ref=e1131]: low
+                      - button "Mark complete" [ref=e1132]:
+                        - img [ref=e1133]
+                      - button "Delete" [ref=e1136]:
+                        - img [ref=e1137]
+                  - generic [ref=e1140]:
+                    - generic [ref=e1141]:
+                      - img [ref=e1142]
+                      - text: 22:00-23:00
+                    - generic [ref=e1145]:
+                      - img [ref=e1146]
+                      - text: Grill
+                    - generic [ref=e1149]:
+                      - img [ref=e1150]
+                      - text: Test User
+                - generic [ref=e1153]:
+                  - generic [ref=e1154]:
+                    - heading "Clean kitchen surfaces post-lunch" [level=4] [ref=e1155]
+                    - generic [ref=e1156]:
+                      - generic [ref=e1157]: high
+                      - button "Mark complete" [ref=e1158]:
+                        - img [ref=e1159]
+                      - button "Delete" [ref=e1162]:
+                        - img [ref=e1163]
+                  - generic [ref=e1166]:
+                    - generic [ref=e1167]:
+                      - img [ref=e1168]
+                      - text: 15:00-16:00
+                    - generic [ref=e1171]:
+                      - img [ref=e1172]
+                      - text: Kitchen
+                    - generic [ref=e1175]:
+                      - img [ref=e1176]
+                      - text: Sophie Host
+                - generic [ref=e1179]:
+                  - generic [ref=e1180]:
+                    - heading "Wash dishes from lunch service" [level=4] [ref=e1181]
+                    - generic [ref=e1182]:
+                      - generic [ref=e1183]: high
+                      - button "Mark complete" [ref=e1184]:
+                        - img [ref=e1185]
+                      - button "Delete" [ref=e1188]:
+                        - img [ref=e1189]
+                  - generic [ref=e1192]:
+                    - generic [ref=e1193]:
+                      - img [ref=e1194]
+                      - text: 14:00-16:00
+                    - generic [ref=e1197]:
+                      - img [ref=e1198]
+                      - text: Dishwashing
+                    - generic [ref=e1201]:
+                      - img [ref=e1202]
+                      - text: Sophie Host
+                - generic [ref=e1205]:
+                  - generic [ref=e1206]:
+                    - heading "Sanitise bar area at close" [level=4] [ref=e1207]
+                    - generic [ref=e1208]:
+                      - generic [ref=e1209]: medium
+                      - button "Mark complete" [ref=e1210]:
+                        - img [ref=e1211]
+                      - button "Delete" [ref=e1214]:
+                        - img [ref=e1215]
+                  - generic [ref=e1218]:
+                    - generic [ref=e1219]:
+                      - img [ref=e1220]
+                      - text: 01:00-02:00
+                    - generic [ref=e1223]:
+                      - img [ref=e1224]
+                      - text: Bar
+                    - generic [ref=e1227]:
+                      - img [ref=e1228]
+                      - text: andrew trumph
+                - generic [ref=e1231]:
+                  - generic [ref=e1232]:
+                    - heading "Clean kitchen post-lunch" [level=4] [ref=e1233]
+                    - generic [ref=e1234]:
+                      - generic [ref=e1235]: high
+                      - button "Mark complete" [ref=e1236]:
+                        - img [ref=e1237]
+                      - button "Delete" [ref=e1240]:
+                        - img [ref=e1241]
+                  - generic [ref=e1244]:
+                    - generic [ref=e1245]:
+                      - img [ref=e1246]
+                      - text: 15:00-16:00
+                    - generic [ref=e1249]:
+                      - img [ref=e1250]
+                      - text: Kitchen
+                    - generic [ref=e1253]:
+                      - img [ref=e1254]
+                      - text: Marco Chef
+                - generic [ref=e1257]:
+                  - generic [ref=e1258]:
+                    - heading "Deep clean grill station" [level=4] [ref=e1259]
+                    - generic [ref=e1260]:
+                      - generic [ref=e1261]: low
+                      - button "Mark complete" [ref=e1262]:
+                        - img [ref=e1263]
+                      - button "Delete" [ref=e1266]:
+                        - img [ref=e1267]
+                  - generic [ref=e1270]:
+                    - generic [ref=e1271]:
+                      - img [ref=e1272]
+                      - text: 22:00-23:00
+                    - generic [ref=e1275]:
+                      - img [ref=e1276]
+                      - text: Grill
+                    - generic [ref=e1279]:
+                      - img [ref=e1280]
+                      - text: Test User
+                - generic [ref=e1283]:
+                  - generic [ref=e1284]:
+                    - heading "Wash dishes from lunch service" [level=4] [ref=e1285]
+                    - generic [ref=e1286]:
+                      - generic [ref=e1287]: high
+                      - button "Mark complete" [ref=e1288]:
+                        - img [ref=e1289]
+                      - button "Delete" [ref=e1292]:
+                        - img [ref=e1293]
+                  - generic [ref=e1296]:
+                    - generic [ref=e1297]:
+                      - img [ref=e1298]
+                      - text: 14:00-16:00
+                    - generic [ref=e1301]:
+                      - img [ref=e1302]
+                      - text: Dishwashing
+                    - generic [ref=e1305]:
+                      - img [ref=e1306]
+                      - text: Mia Staff
+                - generic [ref=e1309]:
+                  - generic [ref=e1310]:
+                    - heading "Wash dishes from lunch service" [level=4] [ref=e1311]
+                    - generic [ref=e1312]:
+                      - generic [ref=e1313]: high
+                      - button "Mark complete" [ref=e1314]:
+                        - img [ref=e1315]
+                      - button "Delete" [ref=e1318]:
+                        - img [ref=e1319]
+                  - generic [ref=e1322]:
+                    - generic [ref=e1323]:
+                      - img [ref=e1324]
+                      - text: 14:00-16:00
+                    - generic [ref=e1327]:
+                      - img [ref=e1328]
+                      - text: Dishwashing
+                    - generic [ref=e1331]:
+                      - img [ref=e1332]
+                      - text: Mia Staff
+                - generic [ref=e1335]:
+                  - generic [ref=e1336]:
+                    - heading "Deep clean grill station" [level=4] [ref=e1337]
+                    - generic [ref=e1338]:
+                      - generic [ref=e1339]: low
+                      - button "Mark complete" [ref=e1340]:
+                        - img [ref=e1341]
+                      - button "Delete" [ref=e1344]:
+                        - img [ref=e1345]
+                  - generic [ref=e1348]:
+                    - generic [ref=e1349]:
+                      - img [ref=e1350]
+                      - text: 22:00-23:00
+                    - generic [ref=e1353]:
+                      - img [ref=e1354]
+                      - text: Grill
+                    - generic [ref=e1357]:
+                      - img [ref=e1358]
+                      - text: Emma Bartender
+                - button "Add task" [ref=e1361]:
+                  - img [ref=e1362]
+                  - text: Add task
+            - generic [ref=e1363]:
+              - generic [ref=e1364]:
+                - text: Inventory Management
+                - generic [ref=e1365]: "9"
+              - generic [ref=e1366]:
+                - generic [ref=e1367]:
+                  - generic [ref=e1368]:
+                    - heading "Order vegetables for next week" [level=4] [ref=e1369]
+                    - generic [ref=e1370]:
+                      - generic [ref=e1371]: low
+                      - button "Mark complete" [ref=e1372]:
+                        - img [ref=e1373]
+                      - button "Delete" [ref=e1376]:
+                        - img [ref=e1377]
+                  - generic [ref=e1380]:
+                    - generic [ref=e1381]:
+                      - img [ref=e1382]
+                      - text: 15:00-16:00
+                    - generic [ref=e1385]:
+                      - img [ref=e1386]
+                      - text: Kitchen
+                    - generic [ref=e1389]:
+                      - img [ref=e1390]
+                      - text: Bhuvanesh kaushik
+                - generic [ref=e1393]:
+                  - generic [ref=e1394]:
+                    - heading "Order vegetables for next week" [level=4] [ref=e1395]
+                    - generic [ref=e1396]:
+                      - generic [ref=e1397]: low
+                      - button "Mark complete" [ref=e1398]:
+                        - img [ref=e1399]
+                      - button "Delete" [ref=e1402]:
+                        - img [ref=e1403]
+                  - generic [ref=e1406]:
+                    - generic [ref=e1407]:
+                      - img [ref=e1408]
+                      - text: 15:00-16:00
+                    - generic [ref=e1411]:
+                      - img [ref=e1412]
+                      - text: Kitchen
+                    - generic [ref=e1415]:
+                      - img [ref=e1416]
+                      - text: Bhuvanesh kaushik
+                - generic [ref=e1419]:
+                  - generic [ref=e1420]:
+                    - heading "Check meat stock levels" [level=4] [ref=e1421]
+                    - generic [ref=e1422]:
+                      - generic [ref=e1423]: high
+                      - button "Mark complete" [ref=e1424]:
+                        - img [ref=e1425]
+                      - button "Delete" [ref=e1428]:
+                        - img [ref=e1429]
+                  - generic [ref=e1432]:
+                    - generic [ref=e1433]:
+                      - img [ref=e1434]
+                      - text: 08:00-09:00
+                    - generic [ref=e1437]:
+                      - img [ref=e1438]
+                      - text: Meat
+                    - generic [ref=e1441]:
+                      - img [ref=e1442]
+                      - text: Nayan Joshy Maniyath Joshy
+                - generic [ref=e1445]:
+                  - generic [ref=e1446]:
+                    - heading "Order vegetables for next week" [level=4] [ref=e1447]
+                    - generic [ref=e1448]:
+                      - generic [ref=e1449]: low
+                      - button "Mark complete" [ref=e1450]:
+                        - img [ref=e1451]
+                      - button "Delete" [ref=e1454]:
+                        - img [ref=e1455]
+                  - generic [ref=e1458]:
+                    - generic [ref=e1459]:
+                      - img [ref=e1460]
+                      - text: 15:00-16:00
+                    - generic [ref=e1463]:
+                      - img [ref=e1464]
+                      - text: Kitchen
+                    - generic [ref=e1467]:
+                      - img [ref=e1468]
+                      - text: Lisa Cook
+                - generic [ref=e1471]:
+                  - generic [ref=e1472]:
+                    - heading "Check meat stock levels" [level=4] [ref=e1473]
+                    - generic [ref=e1474]:
+                      - generic [ref=e1475]: high
+                      - button "Mark complete" [ref=e1476]:
+                        - img [ref=e1477]
+                      - button "Delete" [ref=e1480]:
+                        - img [ref=e1481]
+                  - generic [ref=e1484]:
+                    - generic [ref=e1485]:
+                      - img [ref=e1486]
+                      - text: 08:00-09:00
+                    - generic [ref=e1489]:
+                      - img [ref=e1490]
+                      - text: Meat
+                    - generic [ref=e1493]:
+                      - img [ref=e1494]
+                      - text: Nayan Joshy Maniyath Joshy
+                - generic [ref=e1497]:
+                  - generic [ref=e1498]:
+                    - heading "Count beverage inventory" [level=4] [ref=e1499]
+                    - generic [ref=e1500]:
+                      - generic [ref=e1501]: medium
+                      - button "Mark complete" [ref=e1502]:
+                        - img [ref=e1503]
+                      - button "Delete" [ref=e1506]:
+                        - img [ref=e1507]
+                  - generic [ref=e1510]:
+                    - generic [ref=e1511]:
+                      - img [ref=e1512]
+                      - text: 09:00-10:00
+                    - generic [ref=e1515]:
+                      - img [ref=e1516]
+                      - text: Bar
+                    - generic [ref=e1519]:
+                      - img [ref=e1520]
+                      - text: Employee User
+                - generic [ref=e1523]:
+                  - generic [ref=e1524]:
+                    - heading "Count beverage inventory" [level=4] [ref=e1525]
+                    - generic [ref=e1526]:
+                      - generic [ref=e1527]: medium
+                      - button "Mark complete" [ref=e1528]:
+                        - img [ref=e1529]
+                      - button "Delete" [ref=e1532]:
+                        - img [ref=e1533]
+                  - generic [ref=e1536]:
+                    - generic [ref=e1537]:
+                      - img [ref=e1538]
+                      - text: 09:00-10:00
+                    - generic [ref=e1541]:
+                      - img [ref=e1542]
+                      - text: Bar
+                    - generic [ref=e1545]:
+                      - img [ref=e1546]
+                      - text: James Waiter
+                - generic [ref=e1549]:
+                  - generic [ref=e1550]:
+                    - heading "Count beverage inventory" [level=4] [ref=e1551]
+                    - generic [ref=e1552]:
+                      - generic [ref=e1553]: medium
+                      - button "Mark complete" [ref=e1554]:
+                        - img [ref=e1555]
+                      - button "Delete" [ref=e1558]:
+                        - img [ref=e1559]
+                  - generic [ref=e1562]:
+                    - generic [ref=e1563]:
+                      - img [ref=e1564]
+                      - text: 09:00-10:00
+                    - generic [ref=e1567]:
+                      - img [ref=e1568]
+                      - text: Bar
+                    - generic [ref=e1571]:
+                      - img [ref=e1572]
+                      - text: Employee User
+                - generic [ref=e1575]:
+                  - generic [ref=e1576]:
+                    - heading "Check meat stock levels" [level=4] [ref=e1577]
+                    - generic [ref=e1578]:
+                      - generic [ref=e1579]: high
+                      - button "Mark complete" [ref=e1580]:
+                        - img [ref=e1581]
+                      - button "Delete" [ref=e1584]:
+                        - img [ref=e1585]
+                  - generic [ref=e1588]:
+                    - generic [ref=e1589]:
+                      - img [ref=e1590]
+                      - text: 08:00-09:00
+                    - generic [ref=e1593]:
+                      - img [ref=e1594]
+                      - text: Meat
+                    - generic [ref=e1597]:
+                      - img [ref=e1598]
+                      - text: Marco Chef
+                - button "Add task" [ref=e1601]:
+                  - img [ref=e1602]
+                  - text: Add task
+    - generic [ref=e1604]:
+      - generic [ref=e1606]:
+        - button "Dashboard" [ref=e1607]:
+          - img [ref=e1608]
+        - generic: Dashboard
+      - generic [ref=e1613]:
+        - button "Scheduler" [ref=e1614]:
+          - img [ref=e1615]
+        - generic: Scheduler
+      - generic [ref=e1617]:
+        - button "Tasks" [ref=e1618]:
+          - img [ref=e1619]
+        - generic: Tasks
+      - generic [ref=e1622]:
+        - button "Emergencies" [ref=e1623]:
+          - img [ref=e1624]
+        - generic: Emergencies
+      - generic [ref=e1626]:
+        - button "Swap Requests" [ref=e1627]:
+          - img [ref=e1628]
+        - generic: Swap Requests
+      - generic [ref=e1631]:
+        - button "Shortage" [ref=e1632]:
+          - img [ref=e1633]
+        - generic: Shortage
+      - generic [ref=e1638]:
+        - button "Transport" [ref=e1639]:
+          - img [ref=e1640]
+        - generic: Transport
+      - generic [ref=e1643]:
+        - button "Inventory" [ref=e1644]:
+          - img [ref=e1645]
+        - generic: Inventory
+      - generic [ref=e1649]:
+        - button "Staff" [ref=e1650]:
+          - img [ref=e1651]
+        - generic: Staff
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e1661] [cursor=pointer]:
+    - img [ref=e1662]
+  - alert [ref=e1665]
+  - generic [ref=e1666]: "160"
+```
+
+# Test source
+
+```ts
+  1  | import { test, expect } from '@playwright/test';
+  2  | 
+  3  | test.describe('Manager Golden Path Workflow', () => {
+  4  | 
+  5  |   test.beforeEach(async ({ page }) => {
+  6  |     await page.goto('/?login=true');
+  7  |     await page.evaluate(() => indexedDB.deleteDatabase('firebaseLocalStorageDb'));
+  8  |     await page.reload();
+  9  |   });
+  10 | 
+  11 |   test('Manager completes extensive daily workflow across all modules', async ({ page }) => {
+  12 |     test.setTimeout(90000); // 90 seconds for this extensive test
+  13 | 
+  14 |     // 1. Login as Manager
+  15 |     await page.waitForTimeout(2000); // Wait for React hydration
+  16 |     await page.getByPlaceholder('you@restaurant.com').fill('manager@remo.demo');
+  17 |     await page.getByPlaceholder('••••••••').fill('Demo@1234');
+  18 |     await page.locator('button[type="submit"]').click();
+  19 |     await page.waitForTimeout(4000); // Wait for Firebase Auth
+  20 | 
+  21 |     // 2. Dashboard Verification
+  22 |     // The dashboard should show Demand Forecast
+> 23 |     await expect(page.getByRole('heading', { name: 'Demand Forecast' })).toBeVisible({ timeout: 15000 });
+     |                                                                          ^ Error: expect(locator).toBeVisible() failed
+  24 |     
+  25 |     // 3. Task Board Navigation & Verification
+  26 |     await page.getByRole('button', { name: 'Tasks' }).click();
+  27 |     await expect(page.getByRole('heading', { name: 'Task Board' })).toBeVisible();
+  28 |     await expect(page.getByText('To Do')).toBeVisible();
+  29 |     await expect(page.getByText('In Progress')).toBeVisible();
+  30 | 
+  31 |     // 4. Inventory Management
+  32 |     await page.getByRole('button', { name: 'Inventory' }).click();
+  33 |     await expect(page.getByRole('heading', { name: 'Inventory' })).toBeVisible();
+  34 |     
+  35 |     // Open Add Item modal
+  36 |     await page.getByRole('button', { name: 'Add Item' }).click();
+  37 |     await expect(page.getByRole('heading', { name: 'Add New Item' })).toBeVisible();
+  38 |     
+  39 |     // Fill out form
+  40 |     await page.getByPlaceholder('Item Name').fill('Premium Test Tomatoes');
+  41 |     // We click Cancel to avoid polluting the DB
+  42 |     await page.getByRole('button', { name: 'Cancel' }).click();
+  43 | 
+  44 |     // 5. Scheduler & Shortage Alerts
+  45 |     await page.getByRole('button', { name: 'Scheduler' }).click();
+  46 |     // Wait for the grid to load
+  47 |     await expect(page.getByText('Staff')).first().toBeVisible();
+  48 | 
+  49 |     // Verify Shortage Alerts panel
+  50 |     await expect(page.getByText('Shortage Alerts')).toBeVisible();
+  51 |     
+  52 |     // Trigger AI Match on an alert if one exists
+  53 |     const matchButton = page.locator('button:has-text("Match")').first();
+  54 |     if (await matchButton.isVisible()) {
+  55 |       await matchButton.click();
+  56 |       // AI Match Modal should appear
+  57 |       await expect(page.getByText('AI Suggestion')).toBeVisible();
+  58 |       await expect(page.getByText('Confidence:')).toBeVisible();
+  59 |       await page.getByRole('button', { name: 'Cancel' }).click();
+  60 |     }
+  61 | 
+  62 |     // 6. Transport / Taxi Request
+  63 |     await page.getByRole('button', { name: 'Transport' }).click();
+  64 |     await expect(page.getByRole('heading', { name: 'Transport Management' })).toBeVisible();
+  65 |     
+  66 |     // Ensure the AI Eligibility check runs when trying to request
+  67 |     await page.getByRole('button', { name: 'Request Uber' }).first().click();
+  68 |     await expect(page.getByText('AI Eligibility Check')).toBeVisible();
+  69 |     
+  70 |     // Wait for AI to finish deciding (Cancel button will be available)
+  71 |     await page.getByRole('button', { name: 'Cancel' }).click();
+  72 | 
+  73 |     // 7. Emergencies
+  74 |     await page.getByRole('button', { name: 'Emergencies' }).click();
+  75 |     await expect(page.getByRole('heading', { name: 'Active Emergencies' })).toBeVisible();
+  76 |   });
+  77 | });
+  78 | 
+```

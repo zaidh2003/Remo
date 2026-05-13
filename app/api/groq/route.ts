@@ -58,6 +58,7 @@ async function getCachedResponse(cacheKey: string, ttlMinutes: number): Promise<
       return null;
     }
     
+    if (!cacheData) return null;
     console.log(`[Groq Cache] HIT for ${cacheKey} (age: ${ageMinutes.toFixed(1)}m)`);
     return cacheData.result;
   } catch (error) {

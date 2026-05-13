@@ -157,7 +157,7 @@ export async function getInventory(branchId?: string): Promise<InventoryItem[]> 
     .sort((a, b) => a.category.localeCompare(b.category));
 }
 
-export async function saveInventoryItem(item: Omit<InventoryItem, "id" | "updatedAt">): Promise<string> {
+export async function saveInventoryItem(item: Omit<InventoryItem, "id" | "status" | "updatedAt">): Promise<string> {
   const status = calculateInventoryStatus(item.currentStock, item.minimumStock);
   const ref = await addDoc(collection(db, "inventory"), { 
     ...item, 
