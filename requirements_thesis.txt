@@ -11,3 +11,9 @@ python-docx>=0.8.11
 
 # Optional: For grammar checking
 # language-tool-python>=2.7.0
+
+# Dependencies for Ensemble Machine Learning Benchmark
+tensorflow>=2.15.0
+numpy>=1.26.0
+pandas>=2.1.0
+scikit-learn>=1.3.0

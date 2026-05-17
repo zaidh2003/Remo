@@ -8,7 +8,7 @@
 [![Firebase](https://img.shields.io/badge/Firebase-Firestore-orange)](https://firebase.google.com/)
 [![Groq AI](https://img.shields.io/badge/Groq-Llama%203.3%2070B-purple)](https://groq.com/)
 
-## 📸 Application Screenshots
+##  Application Screenshots
 
 ### Landing Page
 ![Landing Page](images/landing-page.png)
@@ -42,56 +42,56 @@
 ![Transport Management](images/transport-management.png)
 *Delivery coordination with policy enforcement and real-time tracking for food transportation.*
 
-## 🚀 Key Features
+##  Key Features
 
-### ✅ Smart Scheduling (95% Complete)
+###  Smart Scheduling (95% Complete)
 - **AI Optimization**: Groq-powered schedule generation
 - **Labor KPIs**: Real-time staffing analysis
 - **Weekly Calendar**: Visual drag-and-drop interface
 - **Staff Constraints**: Availability and preference management
 
-### ✅ Emergency Response (95% Complete)
+###  Emergency Response (95% Complete)
 - **AI Suggestions**: Intelligent crisis response recommendations
 - **Broadcast System**: Instant staff notifications
 - **Real-time Updates**: Live emergency board
 - **Response Tracking**: Action status monitoring
 
-### ✅ Shortage Alerts (95% Complete)
+###  Shortage Alerts (95% Complete)
 - **Firestore Integration**: Real-time inventory monitoring
 - **Smart Alerts**: Critical stock level notifications
 - **Response Management**: Employee acceptance system
 - **Prevention Logic**: Race condition protection
 
-### ✅ Groq AI Engine (100% Complete)
+###  Groq AI Engine (100% Complete)
 - **Llama 3.3 70B**: Advanced language model integration
 - **Contextual Responses**: Restaurant-specific AI assistance
 - **Optimization Algorithms**: Smart scheduling and forecasting
 - **Real-time Processing**: Instant AI computations
 
-### ✅ Transport Management (95% Complete)
+###  Transport Management (95% Complete)
 - **Policy Enforcement**: Food safety compliance
 - **Route Optimization**: Efficient delivery planning
 - **Real-time Tracking**: GPS monitoring
 - **Temperature Control**: Safe transport monitoring
 
-### ✅ Role-Based Access (100% Complete)
+###  Role-Based Access (100% Complete)
 - **5 User Roles**: Admin, Manager, Chef, Server, Staff
 - **Hierarchical Permissions**: Granular access control
 - **Firebase Security**: Database-level protection
 - **UI Filtering**: Role-appropriate interfaces
 
-### ✅ Demand Forecasting (95% Complete)
+###  Demand Forecasting (95% Complete)
 - **94.2% Accuracy**: Historical data analysis
 - **Hourly Predictions**: Real-time footfall forecasting
 - **Peak Analysis**: Rush hour optimization
 - **Trend Indicators**: Performance insights
 
-### ⚠️ Multilingual Support (30% Complete)
+###  Multilingual Support (30% Complete)
 - **Type Definitions**: Infrastructure ready
 - **Translation Keys**: Framework established
 - **UI Components**: Localization hooks prepared
 
-## 🛠️ Technology Stack
+##  Technology Stack
 
 ### Frontend Framework
 - **Next.js 16.2.4** - React framework with App Router
@@ -120,49 +120,49 @@
 - **Recharts** - Data visualization
 - **date-fns** - Date manipulation
 
-## 📊 Performance Metrics
+##  Performance Metrics
 
 | Feature | Accuracy | Status | Implementation |
 |---------|----------|--------|----------------|
-| Demand Forecasting | 94.2% | ✅ Complete | AI-powered predictions |
-| Smart Scheduling | 95% | ✅ Complete | Groq optimization |
-| Emergency Response | 95% | ✅ Complete | Real-time AI suggestions |
-| Inventory Alerts | 95% | ✅ Complete | Firestore integration |
-| Transport Management | 95% | ✅ Complete | Policy enforcement |
-| Role-Based Access | 100% | ✅ Complete | Firebase security |
-| AI Engine | 100% | ✅ Complete | Llama 3.3 70B |
-| Multilingual Support | 30% | ⚠️ Partial | Type definitions only |
+| Demand Forecasting | 94.2% |  Complete | AI-powered predictions |
+| Smart Scheduling | 95% |  Complete | Groq optimization |
+| Emergency Response | 95% |  Complete | Real-time AI suggestions |
+| Inventory Alerts | 95% |  Complete | Firestore integration |
+| Transport Management | 95% |  Complete | Policy enforcement |
+| Role-Based Access | 100% |  Complete | Firebase security |
+| AI Engine | 100% |  Complete | Llama 3.3 70B |
+| Multilingual Support | 30% |  Partial | Type definitions only |
 
-## 🏗️ Project Structure
+##  Project Structure
 
 ```
 REMO/
-├── app/                          # Next.js App Router
-│   ├── globals.css              # Global styles
-│   ├── layout.tsx               # Root layout
-│   └── page.tsx                 # Home page (dashboard)
-├── components/
-│   ├── dashboard/               # Main dashboard components
-│   │   ├── restaurant-dashboard.tsx
-│   │   ├── dashboard-overview.tsx
-│   │   ├── weekly-scheduler.tsx
-│   │   ├── demand-forecast.tsx
-│   │   ├── staff-directory.tsx
-│   │   ├── inventory-management.tsx
-│   │   ├── emergency-response.tsx
-│   │   └── transport-management.tsx
-│   ├── ui/                      # Radix UI components (30+)
-│   └── auth/                    # Authentication components
-├── lib/
-│   ├── mock-data.ts             # Demo data
-│   ├── types.ts                 # TypeScript definitions
-│   └── services/                # Firebase services
-├── hooks/                       # Custom React hooks
-├── public/                      # Static assets
-└── images/                      # Screenshots & assets
+ app/                          # Next.js App Router
+    globals.css              # Global styles
+    layout.tsx               # Root layout
+    page.tsx                 # Home page (dashboard)
+ components/
+    dashboard/               # Main dashboard components
+       restaurant-dashboard.tsx
+       dashboard-overview.tsx
+       weekly-scheduler.tsx
+       demand-forecast.tsx
+       staff-directory.tsx
+       inventory-management.tsx
+       emergency-response.tsx
+       transport-management.tsx
+    ui/                      # Radix UI components (30+)
+    auth/                    # Authentication components
+ lib/
+    mock-data.ts             # Demo data
+    types.ts                 # TypeScript definitions
+    services/                # Firebase services
+ hooks/                       # Custom React hooks
+ public/                      # Static assets
+ images/                      # Screenshots & assets
 ```
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 - Node.js 18+
@@ -194,25 +194,25 @@ pnpm lint     # Run ESLint
 pnpm test     # Run tests
 ```
 
-## 🔐 Authentication & Roles
+##  Authentication & Roles
 
 ### User Roles Hierarchy
 
 | Role | Permissions | Access Level |
 |------|-------------|--------------|
-| **Admin** 👑 | Full system access | All features + user management |
-| **Manager** 👔 | Operations management | Staff, schedules, reports |
-| **Chef** 👨‍🍳 | Kitchen operations | Tasks, inventory, prep |
-| **Server** 🍽️ | Service operations | Schedule, assignments |
-| **Staff** 👥 | Basic access | Personal schedule only |
+| **Admin**  | Full system access | All features + user management |
+| **Manager**  | Operations management | Staff, schedules, reports |
+| **Chef**  | Kitchen operations | Tasks, inventory, prep |
+| **Server**  | Service operations | Schedule, assignments |
+| **Staff**  | Basic access | Personal schedule only |
 
 ### Authentication Flow
-1. **Landing Page** → Feature overview
-2. **Sign In** → Firebase authentication
-3. **Role Detection** → Permission-based UI
-4. **Dashboard Access** → Role-appropriate features
+1. **Landing Page**  Feature overview
+2. **Sign In**  Firebase authentication
+3. **Role Detection**  Permission-based UI
+4. **Dashboard Access**  Role-appropriate features
 
-## 📈 Data Models
+##  Data Models
 
 ### Core Entities
 
@@ -246,7 +246,7 @@ interface InventoryItem {
 }
 ```
 
-## 🤖 AI Integration
+##  AI Integration
 
 ### Groq AI Features
 - **Smart Scheduling**: Optimize staff assignments based on demand
@@ -263,21 +263,21 @@ Output: "Based on 94.2% accuracy forecast of 120 covers:
 - Total labor cost increase: $45 (2.1%)"
 ```
 
-## 📱 Responsive Design
+##  Responsive Design
 
 - **Mobile-First**: Optimized for phones and tablets
 - **Desktop Enhanced**: Full feature set on larger screens
 - **Touch-Friendly**: Large buttons and swipe gestures
 - **Performance**: Fast loading across all devices
 
-## 🔄 Real-time Features
+##  Real-time Features
 
 - **Live Updates**: Firestore real-time listeners
 - **Emergency Alerts**: Instant notifications
 - **Inventory Sync**: Automatic stock level updates
 - **Schedule Changes**: Live staff coordination
 
-## 🧪 Testing & Quality
+##  Testing & Quality
 
 ### Test Coverage
 - **Unit Tests**: Component and utility testing
@@ -291,15 +291,15 @@ Output: "Based on 94.2% accuracy forecast of 120 covers:
 - **Prettier**: Consistent code formatting
 - **Accessibility**: WCAG AAA compliance
 
-## 📋 Recent Updates (May 2026)
+##  Recent Updates (May 2026)
 
-- ✅ **UI Modernization**: Floating navbar, glassmorphism effects
-- ✅ **Accessibility Fixes**: WCAG AAA compliant forms
-- ✅ **Quick Actions**: Functional navigation buttons
-- ✅ **Feature Audit**: 87.5% implementation completion
-- ✅ **Build Optimization**: Memory allocation fixes
+-  **UI Modernization**: Floating navbar, glassmorphism effects
+-  **Accessibility Fixes**: WCAG AAA compliant forms
+-  **Quick Actions**: Functional navigation buttons
+-  **Feature Audit**: 87.5% implementation completion
+-  **Build Optimization**: Memory allocation fixes
 
-## 🎯 Roadmap
+##  Roadmap
 
 ### Phase 1 (Complete)
 - Core dashboard functionality
@@ -319,11 +319,11 @@ Output: "Based on 94.2% accuracy forecast of 120 covers:
 - Advanced reporting
 - API marketplace
 
-## 📄 License
+##  License
 
 This project is built with modern web technologies for demonstration purposes.
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork the repository
 2. Create feature branch
@@ -331,13 +331,13 @@ This project is built with modern web technologies for demonstration purposes.
 4. Push to branch
 5. Create Pull Request
 
-## 📞 Support
+##  Support
 
 For questions or support, please refer to the documentation or create an issue in the repository.
 
 ---
 
-**Built with ❤️ using Next.js, React, and AI**
+**Built with  using Next.js, React, and AI**
 
 ## Key Features
 
@@ -351,9 +351,9 @@ For questions or support, please refer to the documentation or create an issue i
 - **Weekly Staff Scheduling**: Visual calendar-based scheduling for all 7 days
 - **AI Optimization**: "Optimize with Groq" button for AI-powered schedule generation
 - **Labor KPI Flags**: 
-  - 🟢 **Optimal**: 9 shifts
-  - 🔴 **Understaffed**: 2 shifts
-  - ⚠️ **Overworked**: 3 shifts
+  -  **Optimal**: 9 shifts
+  -  **Understaffed**: 2 shifts
+  -  **Overworked**: 3 shifts
 - **Staff Management**: Display of assigned staff with shifts and roles
 
 ### 3. **Demand Forecast**
@@ -378,9 +378,9 @@ For questions or support, please refer to the documentation or create an issue i
 ### 5. **Inventory Management**
 - **Real-time Stock Tracking**: 8+ inventory items across multiple categories
 - **Status Indicators**:
-  - 🟢 **In Stock**: 5 items
-  - 🟡 **Low Stock**: 3 items
-  - 🔴 **Critical**: 1 item (Mixed Greens - 8 cases, min: 15)
+  -  **In Stock**: 5 items
+  -  **Low Stock**: 3 items
+  -  **Critical**: 1 item (Mixed Greens - 8 cases, min: 15)
 - **Categories**:
   - Proteins: Chicken Breast (45 lbs), Salmon Fillet (30 lbs)
   - Produce: Mixed Greens (8 cases), Tomatoes (40 lbs)
@@ -418,34 +418,34 @@ For questions or support, please refer to the documentation or create an issue i
 
 ```
 REMO/
-├── app/                          # Next.js app directory
-│   ├── globals.css              # Global styles
-│   ├── layout.tsx               # Root layout with metadata
-│   └── page.tsx                 # Home page (renders RestaurantDashboard)
-├── components/
-│   ├── dashboard/
-│   │   ├── restaurant-dashboard.tsx  # Main dashboard component (tab router)
-│   │   ├── sidebar.tsx              # Navigation sidebar
-│   │   ├── dashboard-overview.tsx   # Dashboard home view
-│   │   ├── weekly-scheduler.tsx     # Staff scheduling interface
-│   │   ├── demand-forecast.tsx      # Demand forecasting view
-│   │   ├── staff-directory.tsx      # Team member directory
-│   │   ├── inventory-management.tsx # Inventory tracking
-│   │   ├── forecast-chart.tsx       # Reusable chart component
-│   │   └── task-board.tsx           # Task management interface
-│   ├── ui/                          # Radix UI component wrappers (30+ components)
-│   └── theme-provider.tsx           # Next.js theme provider
-├── lib/
-│   ├── mock-data.ts             # Demo data for all features
-│   └── types.ts                 # TypeScript type definitions
-├── hooks/                           # Custom React hooks
-├── public/                          # Static assets (icons, images)
-├── styles/                          # Additional stylesheets
-├── package.json                     # Dependencies & scripts
-├── tsconfig.json                    # TypeScript configuration
-├── next.config.mjs                  # Next.js configuration
-├── postcss.config.mjs               # PostCSS configuration
-└── components.json                  # Component registry
+ app/                          # Next.js app directory
+    globals.css              # Global styles
+    layout.tsx               # Root layout with metadata
+    page.tsx                 # Home page (renders RestaurantDashboard)
+ components/
+    dashboard/
+       restaurant-dashboard.tsx  # Main dashboard component (tab router)
+       sidebar.tsx              # Navigation sidebar
+       dashboard-overview.tsx   # Dashboard home view
+       weekly-scheduler.tsx     # Staff scheduling interface
+       demand-forecast.tsx      # Demand forecasting view
+       staff-directory.tsx      # Team member directory
+       inventory-management.tsx # Inventory tracking
+       forecast-chart.tsx       # Reusable chart component
+       task-board.tsx           # Task management interface
+    ui/                          # Radix UI component wrappers (30+ components)
+    theme-provider.tsx           # Next.js theme provider
+ lib/
+    mock-data.ts             # Demo data for all features
+    types.ts                 # TypeScript type definitions
+ hooks/                           # Custom React hooks
+ public/                          # Static assets (icons, images)
+ styles/                          # Additional stylesheets
+ package.json                     # Dependencies & scripts
+ tsconfig.json                    # TypeScript configuration
+ next.config.mjs                  # Next.js configuration
+ postcss.config.mjs               # PostCSS configuration
+ components.json                  # Component registry
 
 ```
 
@@ -487,10 +487,10 @@ pnpm lint     # Run ESLint checks
 - Mock data in `lib/mock-data.ts` provides demo information
 
 ### Data Flow
-1. **Mock Data** → Initial state loaded in hooks
-2. **User Interaction** → Tab changes trigger view updates
-3. **Component Rendering** → Active content displayed based on selected tab
-4. **AI Integration** → "Optimize with Groq" button simulates AI optimization (ready for real Groq API integration)
+1. **Mock Data**  Initial state loaded in hooks
+2. **User Interaction**  Tab changes trigger view updates
+3. **Component Rendering**  Active content displayed based on selected tab
+4. **AI Integration**  "Optimize with Groq" button simulates AI optimization (ready for real Groq API integration)
 
 ### Styling Approach
 - **Utility-first**: Tailwind CSS for responsive design
@@ -538,7 +538,7 @@ interface InventoryItem {
 
 ## UI/UX Highlights - MODERNIZED
 
-### Modern Navbar 🎯
+### Modern Navbar 
 - **Fixed Top Bar**: Professional header with fixed positioning
 - **Search Functionality**: Quick search bar for content discovery
 - **Theme Toggle**: Light/Dark mode switcher with Sun/Moon icons
@@ -586,47 +586,47 @@ interface InventoryItem {
 
 ---
 
-## 🔐 Authentication & Authorization System
+##  Authentication & Authorization System
 
 ### Authentication Flow
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     LOGIN PAGE                              │
-│  ┌────────────────────────────────────────────────────┐     │
-│  │ Email: manager@restaurant.com                      │     │
-│  │ Password: ••••••••                                 │     │
-│  │ [Remember Me] [Forgot Password?]                   │     │
-│  │ [Sign In Button]                                   │     │
-│  └────────────────────────────────────────────────────┘     │
-│                           ↓                                  │
-│              ✓ Validate Credentials                         │
-│                           ↓                                  │
-│        Create Authentication Token & Session               │
-│                           ↓                                  │
-└─────────────────────────────────────────────────────────────┘
-                           ↓
-        ┌──────────────────────────────────────┐
-        │   LOAD USER ROLE & PERMISSIONS       │
-        │   ┌──────────────────────────────┐   │
-        │   │ Role: Manager                │   │
-        │   │ Permissions: [Read, Update]  │   │
-        │   └──────────────────────────────┘   │
-        └──────────────────────────────────────┘
-                           ↓
-        ┌──────────────────────────────────────┐
-        │    NAVIGATE TO DASHBOARD             │
-        │    - Display Navbar with User Info   │
-        │    - Load Permitted Pages            │
-        │    - Set Navigation Options          │
-        └──────────────────────────────────────┘
+
+                     LOGIN PAGE                              
+       
+   Email: manager@restaurant.com                           
+   Password:                                       
+   [Remember Me] [Forgot Password?]                        
+   [Sign In Button]                                        
+       
+                                                             
+               Validate Credentials                         
+                                                             
+        Create Authentication Token & Session               
+                                                             
+
+                           
+        
+           LOAD USER ROLE & PERMISSIONS       
+              
+            Role: Manager                   
+            Permissions: [Read, Update]     
+              
+        
+                           
+        
+            NAVIGATE TO DASHBOARD             
+            - Display Navbar with User Info   
+            - Load Permitted Pages            
+            - Set Navigation Options          
+        
 ```
 
 ### Role-Based Access Control (RBAC)
 
 **5 Role Types with Hierarchical Permissions:**
 
-#### 1. **Admin** 👑
+#### 1. **Admin** 
 - **Full System Access**: Create, Read, Update, Delete all resources
 - **Permissions**: 
   - Manage all roles and users
@@ -635,7 +635,7 @@ interface InventoryItem {
   - Configure system settings
 - **UI Visibility**: All menu items + admin-only sections
 
-#### 2. **Manager** 👔
+#### 2. **Manager** 
 - **Restaurant Operations**: Manage staff and scheduling
 - **Permissions**:
   - Read: Dashboard, Staff Directory, Reports
@@ -643,7 +643,7 @@ interface InventoryItem {
   - Create: New schedules and shift assignments
 - **UI Visibility**: Dashboard, Scheduler, Forecasts, Staff Directory
 
-#### 3. **Chef** 👨‍🍳
+#### 3. **Chef** 
 - **Kitchen Management**: Task and inventory management
 - **Permissions**:
   - Read: Task Board, Inventory Levels
@@ -651,14 +651,14 @@ interface InventoryItem {
   - Create: New prep tasks
 - **UI Visibility**: Dashboard (limited), Tasks, Inventory
 
-#### 4. **Server** 🍽️
+#### 4. **Server** 
 - **Service Operations**: Personal schedule and assignments
 - **Permissions**:
   - Read: Personal Schedule, Assigned Tasks
   - Update: Task Status
 - **UI Visibility**: Dashboard (simplified), Personal Schedule
 
-#### 5. **Staff** 👥
+#### 5. **Staff** 
 - **Basic Access**: View schedule only
 - **Permissions**:
   - Read: Personal Schedule
@@ -670,74 +670,74 @@ interface InventoryItem {
 
 ```typescript
 // Role Management Features
-┌─────────────────────────────────────────────────┐
-│  Role Management Interface                      │
-├─────────────────────────────────────────────────┤
-│                                                  │
-│  [+] Add Role                                   │
-│                                                  │
-│  Role List        │  Role Details & Perms       │
-│  ├─ Admin         │  Admin                      │
-│  ├─ Manager       │  ┌─────────────────┐        │
-│  ├─ Chef          │  │ □ Create Users  │        │
-│  ├─ Server        │  │ ☑ Read Reports  │        │
-│  └─ Staff         │  │ □ Delete Shifts │        │
-│                   │  └─────────────────┘        │
-│                   │  [✓ Save] [✗ Cancel]        │
-│                                                  │
-│  Permission Matrix (Create/Read/Update/Delete)  │
-│  ┌──────────┬───┬───┬───┬───┐                  │
-│  │ Role     │ C │ R │ U │ D │                  │
-│  ├──────────┼───┼───┼───┼───┤                  │
-│  │ Admin    │ ✓ │ ✓ │ ✓ │ ✓ │                  │
-│  │ Manager  │ ✓ │ ✓ │ ✓ │   │                  │
-│  │ Chef     │   │ ✓ │ ✓ │   │                  │
-│  │ Server   │   │ ✓ │   │   │                  │
-│  │ Staff    │   │ ✓ │   │   │                  │
-│  └──────────┴───┴───┴───┴───┘                  │
-│                                                  │
-└─────────────────────────────────────────────────┘
+
+  Role Management Interface                      
+
+                                                  
+  [+] Add Role                                   
+                                                  
+  Role List          Role Details & Perms       
+   Admin           Admin                      
+   Manager                 
+   Chef              Create Users          
+   Server            Read Reports          
+   Staff             Delete Shifts         
+                             
+                     [ Save] [ Cancel]        
+                                                  
+  Permission Matrix (Create/Read/Update/Delete)  
+                    
+   Role      C  R  U  D                   
+                    
+   Admin                              
+   Manager                             
+   Chef                                 
+   Server                                
+   Staff                                 
+                    
+                                                  
+
 ```
 
 ### User Registration & Onboarding Flow
 
 ```
-┌──────────────────────────────────────────────────┐
-│   SIGN UP PAGE                                   │
-│   ┌──────────────────────────────────────┐      │
-│   │ Email: [________________]             │      │
-│   │ Password: [________________]          │      │
-│   │ Restaurant Name: [_______]            │      │
-│   │ [Create Account]                      │      │
-│   └──────────────────────────────────────┘      │
-└──────────────────────────────────────────────────┘
-                     ↓
-        ┌────────────────────────────┐
-        │ CREATE RESTAURANT RECORD   │
-        │ - Setup Database Entry     │
-        │ - Generate Restaurant ID   │
-        └────────────────────────────┘
-                     ↓
-        ┌────────────────────────────┐
-        │ CREATE ADMIN USER          │
-        │ - User ID                  │
-        │ - Assign "Admin" Role      │
-        │ - Create Session Token     │
-        └────────────────────────────┘
-                     ↓
-        ┌────────────────────────────┐
-        │ INVITE OTHER STAFF         │
-        │ - Send Email Invitations   │
-        │ - Set Temporary Passwords  │
-        │ - Assign Roles             │
-        └────────────────────────────┘
-                     ↓
-        ┌────────────────────────────┐
-        │ ONBOARDING WIZARD          │
-        │ - Configure Settings       │
-        │ - Add Initial Staff        │
-        │ - Setup Inventory          │
-        └────────────────────────────┘
+
+   SIGN UP PAGE                                   
+         
+    Email: [________________]                   
+    Password: [________________]                
+    Restaurant Name: [_______]                  
+    [Create Account]                            
+         
+
+                     
+        
+         CREATE RESTAURANT RECORD   
+         - Setup Database Entry     
+         - Generate Restaurant ID   
+        
+                     
+        
+         CREATE ADMIN USER          
+         - User ID                  
+         - Assign "Admin" Role      
+         - Create Session Token     
+        
+                     
+        
+         INVITE OTHER STAFF         
+         - Send Email Invitations   
+         - Set Temporary Passwords  
+         - Assign Roles             
+        
+                     
+        
+         ONBOARDING WIZARD          
+         - Configure Settings       
+         - Add Initial Staff        
+         - Setup Inventory          
+        
 ```
 
 ### Session Management
@@ -813,20 +813,20 @@ export function ProtectedFeature({ requiredRole }: Props) {
 
 ```
 lib/
-├── auth-types.ts          # Type definitions for auth
-│   ├── User interface
-│   ├── Role interface
-│   ├── Permission interface
-│   └── rolePermissions matrix
+ auth-types.ts          # Type definitions for auth
+    User interface
+    Role interface
+    Permission interface
+    rolePermissions matrix
 
 components/auth/
-├── login-page.tsx         # Login UI with email/password
-├── role-management.tsx    # Admin role config interface
-├── signup-page.tsx        # Registration form (future)
-└── protected-route.tsx    # Route protection wrapper (future)
+ login-page.tsx         # Login UI with email/password
+ role-management.tsx    # Admin role config interface
+ signup-page.tsx        # Registration form (future)
+ protected-route.tsx    # Route protection wrapper (future)
 
 app/
-└── page.tsx              # Updated with auth state management
+ page.tsx              # Updated with auth state management
 ```
 
 ---
@@ -848,7 +848,7 @@ app/
 - **Generator**: v0.app
 - **Icons**: Light/dark theme icons provided
 
-## 📖 Complete Documentation
+##  Complete Documentation
 
 ### Quick Reference Guides
 - [**BEFORE_AND_AFTER.md**](BEFORE_AND_AFTER.md) - Visual comparison of improvements
@@ -878,12 +878,12 @@ This project appears to be created with v0.app. Verify licensing terms for comme
 **Status**: Modernized UI + Authentication System Added  
 **Running On**: http://localhost:3000  
 **Recent Updates**: 
-- ✅ Modern Navbar with user profile dropdown
-- ✅ Modernized Sidebar with gradients and animations
-- ✅ Login Page component
-- ✅ Role-Based Access Control system
-- ✅ Role Management interface
-- ✅ Authentication flow documentation
+-  Modern Navbar with user profile dropdown
+-  Modernized Sidebar with gradients and animations
+-  Login Page component
+-  Role-Based Access Control system
+-  Role Management interface
+-  Authentication flow documentation
 Replaced navbar and sidebar with the new floating LumaBar component.
 Created wavy landing page component and refactored the login page layout to serve as an entry landing page featuring it.
 Set default state to show the wavy landing page as the home page.
@@ -902,18 +902,18 @@ Added firestore.rules
 
 ---
 
-## 🔧 SESSION 2 UPDATES - Logic Fixes & Thesis Documentation
+##  SESSION 2 UPDATES - Logic Fixes & Thesis Documentation
 
-### ✅ Critical Logic Flaws Identified & Fixed
+###  Critical Logic Flaws Identified & Fixed
 
-#### FLAW #1: Shortage Alert Race Condition ✅ **FIXED**
+#### FLAW #1: Shortage Alert Race Condition  **FIXED**
 **Problem**: Multiple employees could accept the same alert simultaneously, creating conflicting responses.
 
 **Before**:
 ```
-17:37 - Employee 1 ACCEPTS → Alert marked FILLED
-17:38 - Employee 2 ACCEPTS → Response still created ✗
-17:39 - Employee 3 ACCEPTS → Response still created ✗
+17:37 - Employee 1 ACCEPTS  Alert marked FILLED
+17:38 - Employee 2 ACCEPTS  Response still created 
+17:39 - Employee 3 ACCEPTS  Response still created 
 RESULT: Manager sees 3 accepted but only 1 filled status
 ```
 
@@ -942,7 +942,7 @@ await updateDoc(doc(db, "shortageAlerts", alertId), {
 });
 ```
 
-#### FLAW #2: Manager Branch Filtering Too Restrictive ✅ **FIXED**
+#### FLAW #2: Manager Branch Filtering Too Restrictive  **FIXED**
 **Problem**: Managers could only see alerts from single branch, not all managed branches.
 
 **Solution** ([lib/services/user-service.ts](lib/services/user-service.ts#L125-L140)):
@@ -952,7 +952,7 @@ await updateDoc(doc(db, "shortageAlerts", alertId), {
   - MANAGER: See alerts from all branches in `managedBranches[]`
   - EMPLOYEE: See only their assigned branch
 
-#### FLAW #3: Alert Time Validation Missing ✅ **FIXED**
+#### FLAW #3: Alert Time Validation Missing  **FIXED**
 **Problem**: Could create alerts with invalid times (endTime < startTime).
 
 **Solution** ([lib/services/user-service.ts](lib/services/user-service.ts#L107-L130)):
@@ -961,19 +961,19 @@ await updateDoc(doc(db, "shortageAlerts", alertId), {
 - Validate zone is valid WorkZone enum
 - Throw descriptive errors
 
-#### FLAW #4: Taxi Requests Not Validated Against Actual Shifts ⏳ **PENDING**
+#### FLAW #4: Taxi Requests Not Validated Against Actual Shifts  **PENDING**
 **Status**: HIGH PRIORITY  
 **Action**: Create taxi-service.ts with shift validation
 
-#### FLAW #5: SickLeaveType Priority Not Mapped ⏳ **PENDING**
+#### FLAW #5: SickLeaveType Priority Not Mapped  **PENDING**
 **Status**: MEDIUM PRIORITY  
-**Fix**: Map SUDDEN_ILLNESS → HIGH priority, PLANNED_LEAVE → NORMAL
+**Fix**: Map SUDDEN_ILLNESS  HIGH priority, PLANNED_LEAVE  NORMAL
 
-### 📊 Documentation Files Created
+###  Documentation Files Created
 
 #### 1. [SYSTEM_DIAGRAMS.md](SYSTEM_DIAGRAMS.md) - 10 Architecture Diagrams
 ```
-1. High-Level System Architecture (Next.js → Firebase → Groq)
+1. High-Level System Architecture (Next.js  Firebase  Groq)
 2. Emergency Shift Workflow (Detailed timeline)
 3. Data Flow: Shortage Alert Creation to Assignment
 4. Role-Based Access Control Matrix
@@ -1000,26 +1000,26 @@ await updateDoc(doc(db, "shortageAlerts", alertId), {
 - Technical specifications
 - Requirements compliance matrix
 
-### 📈 Project Status Summary
+###  Project Status Summary
 
-**Overall Completion**: 🟡 **87.5%** (7/8 core features at 95%+)
+**Overall Completion**:  **87.5%** (7/8 core features at 95%+)
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Smart Scheduling | ✅ 95% | AI-powered with Groq |
-| Emergency Response | ✅ 95% | Real-time alerts + race condition fix |
-| Shortage Alerts | ✅ 95% | Multi-branch broadcast + fixes |
-| Taxi Management | ✅ 90% | Needs shift validation |
-| Demand Forecast | ✅ 95% | Recharts + Groq insights |
-| Role-Based Access | ✅ 100% | Complete with Firestore rules |
-| Dashboard | ✅ 90% | All features working |
-| Landing Page | ✅ 90% | Floating navbar, cleaned CTAs |
-| Multilingual | 🟡 30% | UI strings only, needs i18n |
-| Inventory | 🟡 40% | UI built, not integrated |
+| Smart Scheduling |  95% | AI-powered with Groq |
+| Emergency Response |  95% | Real-time alerts + race condition fix |
+| Shortage Alerts |  95% | Multi-branch broadcast + fixes |
+| Taxi Management |  90% | Needs shift validation |
+| Demand Forecast |  95% | Recharts + Groq insights |
+| Role-Based Access |  100% | Complete with Firestore rules |
+| Dashboard |  90% | All features working |
+| Landing Page |  90% | Floating navbar, cleaned CTAs |
+| Multilingual |  30% | UI strings only, needs i18n |
+| Inventory |  40% | UI built, not integrated |
 
-### 🎯 Thesis Requirements Compliance
+###  Thesis Requirements Compliance
 
-✅ **COMPLETE**:
+ **COMPLETE**:
 - Automated schedule optimization (Groq AI)
 - Emergency response system (shortage alerts + AI)
 - AI-powered recommendations (5 decision functions)
@@ -1030,11 +1030,11 @@ await updateDoc(doc(db, "shortageAlerts", alertId), {
 - Performance analytics
 - Mobile-responsive design
 
-🟡 **PARTIAL**:
+ **PARTIAL**:
 - Multilingual support (30%)
 - Inventory management (40%)
 
-### 🔗 File References (Session 2 Changes)
+###  File References (Session 2 Changes)
 
 **Modified Files**:
 - [lib/services/user-service.ts](lib/services/user-service.ts) - 3 functions fixed + interface updated
@@ -1045,7 +1045,7 @@ await updateDoc(doc(db, "shortageAlerts", alertId), {
 - [LOGIC_FLAWS_IDENTIFIED.md](LOGIC_FLAWS_IDENTIFIED.md) - Comprehensive audit
 - [THESIS_RESEARCH_PAPER.md](THESIS_RESEARCH_PAPER.md) - Full thesis documentation
 
-### 📝 Next Priority Actions
+###  Next Priority Actions
 
 **Immediate** (This session):
 - [ ] Implement Firestore transaction for atomic operations
@@ -1064,5 +1064,5 @@ await updateDoc(doc(db, "shortageAlerts", alertId), {
 
 ---
 
-**Session 2 Status**: ✅ LOGIC FIXES APPLIED + DOCUMENTATION COMPLETE  
+**Session 2 Status**:  LOGIC FIXES APPLIED + DOCUMENTATION COMPLETE  
 **Next Session**: Atomic operations + taxi validation + final testing
