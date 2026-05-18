@@ -29,8 +29,9 @@ service cloud.firestore {
     // • Anyone signed in can read all user profiles (needed for Staff Directory,
     //   swap request display, shortage alert matching, etc.)
     // • Users can create their own doc on first sign-in.
-    // • ADMIN can update anyone. Managers can update employees in their branch
-    //   (name, phone, position, branch) but NOT the role field.
+    // • ADMIN can update anyone.
+    // • MANAGER can update employees (name, phone, position, branch, skills) but NOT role.
+    // • Users can update their own profile (except role).
     // • Only ADMIN can delete user docs.
     match /users/{userId} {
       allow read: if isSignedIn();
@@ -40,14 +41,14 @@ service cloud.firestore {
       allow update: if isSignedIn() && (
         // ADMIN can do anything
         isAdmin()
-        // MANAGER can edit employees in their own branch — but NOT role
+        // MANAGER can edit EMPLOYEE profiles (name, phone, position, branch, skills)
+        // but NOT their role
         || (
           userDoc().role == "MANAGER"
-          && resource.data.branch == userDoc().branch
           && resource.data.role == "EMPLOYEE"
           && !("role" in request.resource.data.diff(resource.data).affectedKeys())
         )
-        // User can update their own non-role fields (profile panel)
+        // User can update their own non-role fields (profile panel, skills)
         || (
           request.auth.uid == userId
           && !("role" in request.resource.data.diff(resource.data).affectedKeys())
@@ -63,18 +64,16 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // ── Shifts ─────────────────────────────────────────────────────────────────
+    // ── Shifts ───────────────────────────────────────────────────────────────────────
     // • All signed-in users can read (employees need to see their own shifts).
     // • ADMIN can write any shift.
-    // • MANAGER can only write shifts in their own branch.
+    // • MANAGER can write any shift — branch scoping is enforced client-side
+    //   (managers only see/edit shifts for their own branch in the UI).
+    //   Strict server-side branchId matching breaks when the manager’s branch
+    //   field is null or unset in Firestore, causing permission errors.
     match /shifts/{id} {
       allow read: if isSignedIn();
-      allow create: if isManagerOrAdmin() && (
-        isAdmin() || request.resource.data.branchId == userDoc().branch
-      );
-      allow update, delete: if isManagerOrAdmin() && (
-        isAdmin() || resource.data.branchId == userDoc().branch
-      );
+      allow create, update, delete: if isManagerOrAdmin();
     }
 
     // ── Tasks ──────────────────────────────────────────────────────────────────

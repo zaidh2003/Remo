@@ -1,13 +1,15 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Building2, Plus, Pencil, Trash2, Check, X, Loader2, MapPin, User, Brain, Sliders, Database } from "lucide-react"
+import { Building2, Plus, Pencil, Trash2, Check, X, Loader2, MapPin, User, Brain, Sliders, Database, Users } from "lucide-react"
 import { subscribeToBranches, saveBranch, updateBranch, deleteBranch } from "@/lib/services/data-service"
-import { getAllUsers, type UserProfile } from "@/lib/services/user-service"
+import { getAllUsers, updateUserProfile, type UserProfile } from "@/lib/services/user-service"
 import type { Branch, AIWeights } from "@/lib/types"
 import { DEFAULT_AI_WEIGHTS } from "@/lib/types"
 import { seedAllData } from "@/lib/services/seed-service"
 import { toast } from "sonner"
+import { db } from "@/lib/firebase"
+import { collection, getDocs, doc, updateDoc } from "firebase/firestore"
 
 function AIWeightsConfig({ weights, onChange }: {
   weights: AIWeights; onChange: (weights: AIWeights) => void
@@ -170,6 +172,7 @@ export function BranchManagement() {
   const [editBranch, setEditBranch] = useState<Branch | null>(null)
   const [showAdd, setShowAdd]       = useState(false)
   const [seeding, setSeeding]       = useState<string | null>(null)
+  const [assigningBranches, setAssigningBranches] = useState(false)
 
   useEffect(() => {
     const unsub = subscribeToBranches(setBranches)
@@ -191,8 +194,75 @@ export function BranchManagement() {
     )
   }
 
+  const handleAssignBranches = async () => {
+    if (!confirm('Assign branches to all users without a branch?\n\nThis will:\n• Get all users from the database\n• Create "Urmo Projects" branch if no branches exist\n• Assign the first branch to users without a branch\n• Skip users who already have a branch')) {
+      return
+    }
+
+    setAssigningBranches(true)
+    try {
+      // Get all users
+      const usersSnapshot = await getDocs(collection(db, 'users'))
+      
+      if (usersSnapshot.empty) {
+        toast.error('No users found in database')
+        return
+      }
+
+      // Get all branches
+      let currentBranches = branches
+      if (currentBranches.length === 0) {
+        toast.info('No branches found. Creating "Urmo Projects" branch...')
+        await saveBranch({
+          name: 'Urmo Projects',
+          address: 'Main Location',
+          managerId: '',
+          aiWeights: DEFAULT_AI_WEIGHTS,
+        })
+        // Wait a bit for the branch to be created and subscription to update
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        const branchesSnapshot = await getDocs(collection(db, 'branches'))
+        currentBranches = branchesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Branch))
+      }
+
+      const defaultBranch = currentBranches[0]
+      let updatedCount = 0
+      let skippedCount = 0
+
+      // Update each user
+      for (const userDoc of usersSnapshot.docs) {
+        const userData = userDoc.data()
+        const userId = userDoc.id
+
+        // Skip if user already has a branch
+        if (userData.branch && userData.branch.trim() !== '') {
+          skippedCount++
+          continue
+        }
+
+        // Assign default branch
+        await updateDoc(doc(db, 'users', userId), {
+          branch: defaultBranch.name,
+          branchId: defaultBranch.id,
+        })
+
+        updatedCount++
+      }
+
+      toast.success(`Branch assignment complete!`)
+      toast.info(`Updated: ${updatedCount} users, Skipped: ${skippedCount} users`)
+      
+      // Refresh the page to show updated data
+      setTimeout(() => window.location.reload(), 2000)
+    } catch (error: any) {
+      toast.error(`Failed to assign branches: ${error.message}`)
+    } finally {
+      setAssigningBranches(false)
+    }
+  }
+
   const handleSeedData = async (branch: Branch) => {
-    if (!confirm(`Seed ${branch.name} with realistic test data? This will add:\n• 10 staff members\n• ~250 shifts\n• 17 tasks\n• 18 inventory items`)) {
+    if (!confirm(`Seed ${branch.name} with Urmo Projects template data?\n\nThis will add:\n• 6 staff members (1 Manager + 5 specialized employees)\n• ~250 shifts (7 days × 4 time slots × zones)\n• 17 tasks (Preparation, Cooking, Serving, Cleaning, Inventory)\n• 18 inventory items (7 categories)\n\nTemplate: Urmo Projects\nStaff: Andrew Trump (Meat), Marco (Preparation), Mia Khalifa (Dishwashing), Brundan Jagila (Burger), Masood (Potato)`)) {
       return
     }
 
@@ -232,10 +302,29 @@ export function BranchManagement() {
             <p className="text-sm text-muted-foreground">Create and manage restaurant branches</p>
           </div>
         </div>
-        <button onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors">
-          <Plus className="h-4 w-4" /> Add Branch
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleAssignBranches}
+            disabled={assigningBranches}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500/10 text-blue-600 text-sm font-semibold hover:bg-blue-500/20 transition-colors disabled:opacity-60"
+          >
+            {assigningBranches ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Assigning...
+              </>
+            ) : (
+              <>
+                <Users className="h-4 w-4" />
+                Assign Branches to Users
+              </>
+            )}
+          </button>
+          <button onClick={() => setShowAdd(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors">
+            <Plus className="h-4 w-4" /> Add Branch
+          </button>
+        </div>
       </div>
 
       {branches.length === 0 ? (
@@ -296,7 +385,7 @@ export function BranchManagement() {
                   ) : (
                     <>
                       <Database className="h-3.5 w-3.5" />
-                      Seed Test Data
+                      Seed with Urmo Template
                     </>
                   )}
                 </button>

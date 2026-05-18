@@ -1,9 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Users, Shield, Loader2, CheckCircle, AlertCircle, RefreshCw, UserPlus, X, Mail, User, Phone, Briefcase } from "lucide-react"
-import { getAllUsers, updateUserRole, type UserProfile } from "@/lib/services/user-service"
+import { Users, Shield, Loader2, CheckCircle, AlertCircle, RefreshCw, UserPlus, X, Mail, User, Phone, Briefcase, Pencil } from "lucide-react"
+import { getAllUsers, updateUserRole, updateUserProfile, type UserProfile } from "@/lib/services/user-service"
 import { useAuth } from "@/components/providers/auth-provider"
+import { useBranches } from "@/hooks/use-branches"
 import type { AppRole } from "@/lib/types"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
@@ -29,6 +30,7 @@ function AddEmployeeModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
   const [password, setPassword] = useState("")
   const [saving, setSaving]     = useState(false)
   const [error, setError]       = useState("")
+  const { branches }            = useBranches()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -131,8 +133,13 @@ function AddEmployeeModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
             {/* Branch */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Branch</label>
-              <input value={branch} onChange={(e) => setBranch(e.target.value)} placeholder="Branch A"
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary" />
+              <select value={branch} onChange={(e) => setBranch(e.target.value)}
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary">
+                <option value="">No branch assigned</option>
+                {branches.map((b) => (
+                  <option key={b.id} value={b.name}>{b.name}</option>
+                ))}
+              </select>
             </div>
 
             {/* Role */}
@@ -158,6 +165,105 @@ function AddEmployeeModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
   )
 }
 
+// ── Edit User Modal ───────────────────────────────────────────────────────────
+function EditUserModal({ user, onClose, onSaved }: { user: UserProfile; onClose: () => void; onSaved: (updated: Partial<UserProfile>) => void }) {
+  const [name, setName]         = useState(user.name ?? "")
+  const [phone, setPhone]       = useState(user.phone ?? "")
+  const [position, setPosition] = useState(user.position ?? "")
+  const [branch, setBranch]     = useState(user.branch ?? "")
+  const [saving, setSaving]     = useState(false)
+  const [error, setError]       = useState("")
+  const { branches }            = useBranches()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    setError("")
+    try {
+      await updateUserProfile(user.uid, { name: name.trim(), phone: phone.trim(), position: position.trim(), branch: branch.trim() })
+      onSaved({ name: name.trim(), phone: phone.trim(), position: position.trim(), branch: branch.trim() })
+      onClose()
+    } catch (e: any) {
+      setError(e.message || "Failed to update profile.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-bold flex items-center gap-2">
+            <Pencil className="h-5 w-5 text-primary" /> Edit Profile
+          </h3>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Editing: <span className="font-semibold text-foreground">{user.email}</span>
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          {/* Name */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Full Name</label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="John Smith"
+                className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {/* Phone */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Phone</label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 0100"
+                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary" />
+              </div>
+            </div>
+
+            {/* Position */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Position</label>
+              <div className="relative">
+                <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input value={position} onChange={(e) => setPosition(e.target.value)} placeholder="Head Chef"
+                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary" />
+              </div>
+            </div>
+
+            {/* Branch */}
+            <div className="col-span-2 space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Branch</label>
+              <select value={branch} onChange={(e) => setBranch(e.target.value)}
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary">
+                <option value="">No branch assigned</option>
+                {branches.map((b) => (
+                  <option key={b.id} value={b.name}>{b.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {error && <p className="text-sm text-destructive">{error}</p>}
+
+          <button type="submit" disabled={saving}
+            className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold py-2.5 rounded-xl hover:bg-primary/90 disabled:opacity-60 transition-colors">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+            Save Changes
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export function UserManagement() {
   const { profile: currentUser } = useAuth()
   const [users, setUsers] = useState<UserProfile[]>([])
@@ -165,6 +271,7 @@ export function UserManagement() {
   const [saving, setSaving] = useState<string | null>(null)
   const [toast, setToast] = useState<{ type: "ok" | "err"; msg: string } | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null)
 
   const load = async () => {
     setLoading(true)
@@ -276,6 +383,7 @@ export function UserManagement() {
                 <th className="text-left px-5 py-3 font-semibold text-muted-foreground">Email</th>
                 <th className="text-left px-5 py-3 font-semibold text-muted-foreground">Current Role</th>
                 <th className="text-left px-5 py-3 font-semibold text-muted-foreground">Change Role</th>
+                <th className="text-left px-5 py-3 font-semibold text-muted-foreground">Edit Profile</th>
               </tr>
             </thead>
             <tbody>
@@ -330,6 +438,16 @@ export function UserManagement() {
                         )}
                       </div>
                     </td>
+
+                    {/* Edit profile button */}
+                    <td className="px-5 py-4">
+                      <button
+                        onClick={() => setEditingUser(user)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border hover:bg-muted text-sm font-medium transition-colors"
+                      >
+                        <Pencil className="h-3.5 w-3.5" /> Edit
+                      </button>
+                    </td>
                   </tr>
                 )
               })}
@@ -351,6 +469,17 @@ export function UserManagement() {
         <AddEmployeeModal
           onClose={() => setShowAddModal(false)}
           onAdded={() => { load(); showToast("ok", "Employee account created.") }}
+        />
+      )}
+
+      {editingUser && (
+        <EditUserModal
+          user={editingUser}
+          onClose={() => setEditingUser(null)}
+          onSaved={(updated) => {
+            setUsers((prev) => prev.map((u) => u.uid === editingUser.uid ? { ...u, ...updated } : u))
+            showToast("ok", "Profile updated — changes will appear on the user's profile immediately.")
+          }}
         />
       )}
     </div>

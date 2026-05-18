@@ -9,11 +9,11 @@ import {
 } from "@/lib/services/data-service"
 import { createShortageAlert } from "@/lib/services/user-service"
 import { db } from "@/lib/firebase"
-import { collection, addDoc, serverTimestamp } from "firebase/firestore"
+import { collection, addDoc, serverTimestamp, getDocs, deleteDoc, query, where } from "firebase/firestore"
 import {
   Database, CheckCircle, Loader2, AlertTriangle, ChevronDown, ChevronUp,
   Users, Calendar, ClipboardList, Package, ArrowRightLeft, BellRing,
-  CarFront, TrendingUp, Sparkles
+  CarFront, TrendingUp, Sparkles, Trash2
 } from "lucide-react"
 import { toast } from "sonner"
 import type { UserProfile } from "@/lib/services/user-service"
@@ -234,6 +234,88 @@ async function seedNotifications(users: UserProfile[]): Promise<number> {
   return notifs.length
 }
 
+// ── Data Removal Functions ─────────────────────────────────────────────────────
+
+async function removeAllShifts(): Promise<number> {
+  const snapshot = await getDocs(collection(db, "shifts"))
+  let count = 0
+  for (const doc of snapshot.docs) {
+    await deleteDoc(doc.ref)
+    count++
+  }
+  return count
+}
+
+async function removeAllTasks(): Promise<number> {
+  const snapshot = await getDocs(collection(db, "tasks"))
+  let count = 0
+  for (const doc of snapshot.docs) {
+    await deleteDoc(doc.ref)
+    count++
+  }
+  return count
+}
+
+async function removeAllForecast(): Promise<number> {
+  const snapshot = await getDocs(collection(db, "forecast"))
+  let count = 0
+  for (const doc of snapshot.docs) {
+    await deleteDoc(doc.ref)
+    count++
+  }
+  return count
+}
+
+async function removeAllInventory(): Promise<number> {
+  const snapshot = await getDocs(collection(db, "inventory"))
+  let count = 0
+  for (const doc of snapshot.docs) {
+    await deleteDoc(doc.ref)
+    count++
+  }
+  return count
+}
+
+async function removeAllShortageAlerts(): Promise<number> {
+  const snapshot = await getDocs(collection(db, "shortageAlerts"))
+  let count = 0
+  for (const doc of snapshot.docs) {
+    await deleteDoc(doc.ref)
+    count++
+  }
+  return count
+}
+
+async function removeAllSwapRequests(): Promise<number> {
+  const snapshot = await getDocs(collection(db, "swapRequests"))
+  let count = 0
+  for (const doc of snapshot.docs) {
+    await deleteDoc(doc.ref)
+    count++
+  }
+  return count
+}
+
+async function removeAllTaxiRequests(): Promise<number> {
+  const snapshot = await getDocs(collection(db, "taxis"))
+  let count = 0
+  for (const doc of snapshot.docs) {
+    await deleteDoc(doc.ref)
+    count++
+  }
+  return count
+}
+
+async function removeAllNotifications(): Promise<number> {
+  const snapshot = await getDocs(collection(db, "notifications"))
+  let count = 0
+  for (const doc of snapshot.docs) {
+    await deleteDoc(doc.ref)
+    count++
+  }
+  return count
+}
+
 // ── Main Component ─────────────────────────────────────────────────────────────
 type ModuleKey = "shifts" | "tasks" | "forecast" | "inventory" | "shortage" | "swaps" | "taxi" | "notifications"
 
@@ -257,6 +339,7 @@ const MODULES: { key: ModuleKey; label: string; icon: any; description: string }
 export function DemoDataSeeder() {
   const { profile } = useAuth()
   const [running, setRunning]   = useState(false)
+  const [removing, setRemoving] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const [statuses, setStatuses] = useState<Partial<Record<ModuleKey, ModuleStatus>>>({})
 
@@ -305,6 +388,37 @@ export function DemoDataSeeder() {
     toast.success("Demo data seeded! Refresh any module to see the data.")
   }
 
+  const removeAll = async () => {
+    if (!confirm("⚠️ This will permanently delete ALL data from shifts, tasks, inventory, alerts, swaps, taxis, notifications, and forecast. Are you sure?")) {
+      return
+    }
+
+    setRemoving(true)
+    setStatuses({})
+
+    const run = async (key: ModuleKey, fn: () => Promise<number>) => {
+      setStatus(key, { status: "running" })
+      try {
+        const count = await fn()
+        setStatus(key, { status: "done", count })
+      } catch (e: any) {
+        setStatus(key, { status: "error", error: e.message })
+      }
+    }
+
+    await run("shifts",        removeAllShifts)
+    await run("tasks",         removeAllTasks)
+    await run("forecast",      removeAllForecast)
+    await run("inventory",     removeAllInventory)
+    await run("shortage",      removeAllShortageAlerts)
+    await run("swaps",         removeAllSwapRequests)
+    await run("taxi",          removeAllTaxiRequests)
+    await run("notifications", removeAllNotifications)
+
+    setRemoving(false)
+    toast.success("All seed data removed! Refresh any module to confirm.")
+  }
+
   const allDone = MODULES.every((m) => statuses[m.key]?.status === "done")
   const anyError = MODULES.some((m) => statuses[m.key]?.status === "error")
   const anyRan = Object.keys(statuses).length > 0
@@ -332,8 +446,18 @@ export function DemoDataSeeder() {
             {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </button>
           <button
+            onClick={removeAll}
+            disabled={running || removing}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-destructive text-destructive-foreground text-sm font-semibold hover:bg-destructive/90 disabled:opacity-60 transition-colors"
+          >
+            {removing
+              ? <><Loader2 className="h-4 w-4 animate-spin" /> Removing…</>
+              : <><Trash2 className="h-4 w-4" /> Remove All Data</>
+            }
+          </button>
+          <button
             onClick={runAll}
-            disabled={running}
+            disabled={running || removing}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-60 transition-colors"
           >
             {running
@@ -347,7 +471,7 @@ export function DemoDataSeeder() {
       </div>
 
       {/* Overall result banner */}
-      {anyRan && !running && (
+      {anyRan && !running && !removing && (
         <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium ${
           allDone && !anyError
             ? "bg-green-500/10 border border-green-500/20 text-green-400"
@@ -356,7 +480,7 @@ export function DemoDataSeeder() {
             : ""
         }`}>
           {allDone && !anyError
-            ? <><CheckCircle className="h-4 w-4 shrink-0" /> All modules seeded successfully! Navigate to any section to see live data.</>
+            ? <><CheckCircle className="h-4 w-4 shrink-0" /> {removing ? "All data removed successfully!" : "All modules seeded successfully! Navigate to any section to see live data."}</>
             : <><AlertTriangle className="h-4 w-4 shrink-0" /> Some modules failed — check details below.</>
           }
         </div>

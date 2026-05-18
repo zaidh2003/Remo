@@ -1,8 +1,10 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
+import { onSnapshot, doc } from "firebase/firestore";
 import { auth } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import { getUserProfile, UserProfile } from "@/lib/services/user-service";
 
 interface AuthContextType {
@@ -23,6 +25,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  // Keep a ref to the profile listener so we can clean it up when the user changes
+  const profileUnsubRef = useRef<(() => void) | null>(null);
 
   const refreshProfile = useCallback(async () => {
     const currentUser = auth.currentUser;
@@ -32,18 +36,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const authUnsub = onAuthStateChanged(auth, async (firebaseUser) => {
+      // Tear down the previous real-time profile listener (if any)
+      if (profileUnsubRef.current) {
+        profileUnsubRef.current();
+        profileUnsubRef.current = null;
+      }
+
       setUser(firebaseUser);
+
       if (firebaseUser) {
-        const userProfile = await getUserProfile(firebaseUser.uid);
-        setProfile(userProfile);
+        // Bootstrap: check/create the Firestore profile once
+        await getUserProfile(firebaseUser.uid);
+
+        // Then subscribe to the user doc for real-time updates
+        // (admin edits, role changes, etc. will update the context immediately)
+        const profileUnsub = onSnapshot(
+          doc(db, "users", firebaseUser.uid),
+          (snap) => {
+            if (snap.exists()) {
+              setProfile(snap.data() as UserProfile);
+            } else {
+              setProfile(null);
+            }
+            setIsLoading(false);
+          },
+          () => {
+            // On error fall back gracefully
+            setIsLoading(false);
+          }
+        );
+        profileUnsubRef.current = profileUnsub;
       } else {
         setProfile(null);
+        setIsLoading(false);
       }
-      setIsLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      authUnsub();
+      if (profileUnsubRef.current) profileUnsubRef.current();
+    };
   }, []);
 
   return (

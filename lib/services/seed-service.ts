@@ -1,5 +1,6 @@
 /**
  * Comprehensive seed data utility for REMO system
+ * Uses "Urmo Projects" as the base template for all branches
  * Provides realistic test data for all modules
  */
 
@@ -17,131 +18,148 @@ export interface SeedOptions {
 }
 
 /**
- * Seed realistic staff members with skills
+ * URMO PROJECTS TEMPLATE DATA
+ * This is the base template used for all branches
  */
-export async function seedStaff(branchId: string): Promise<UserProfile[]> {
-  const staff: Omit<UserProfile, "uid">[] = [
-    // Managers
+const URMO_TEMPLATE = {
+  branchName: "Urmo Projects",
+  branchId: "urmo-projects",
+  
+  // Staff template (6 members - based on actual Urmo Projects employees)
+  staff: [
+    // Andrew Trump - Meat Expert
     {
-      email: "manager1@remo.test",
-      name: "Sarah Johnson",
-      role: "MANAGER",
-      branchId,
+      email: "andrew.trump@{branch}.test",
+      name: "Andrew Trump",
+      role: "EMPLOYEE" as const,
+      phone: "+58 52551455",
+      position: "Meat Specialist",
       skills: [
-        { zone: "Kitchen", level: "Expert" },
-        { zone: "Grill", level: "Expert" },
-        { zone: "Bar", level: "Intermediate" },
+        { zone: "Meat" as WorkZone, level: "Expert" as SkillLevel },
+        { zone: "Grill" as WorkZone, level: "Expert" as SkillLevel },
+        { zone: "Kitchen" as WorkZone, level: "Intermediate" as SkillLevel },
       ],
     },
-    // Expert Staff
+    // Marco - Preparation Expert
     {
-      email: "chef1@remo.test",
-      name: "Marco Rodriguez",
-      role: "EMPLOYEE",
-      branchId,
+      email: "marco@{branch}.test",
+      name: "Marco",
+      role: "EMPLOYEE" as const,
+      phone: "+1-555-0102",
+      position: "Preparation Chef",
       skills: [
-        { zone: "Grill", level: "Expert" },
-        { zone: "Meat", level: "Expert" },
-        { zone: "Kitchen", level: "Expert" },
+        { zone: "Kitchen" as WorkZone, level: "Expert" as SkillLevel },
+        { zone: "Salad" as WorkZone, level: "Expert" as SkillLevel },
+        { zone: "Meat" as WorkZone, level: "Intermediate" as SkillLevel },
       ],
     },
+    // Mia Khalifa - Dishwashing Intermediate
     {
-      email: "bartender1@remo.test",
-      name: "Emma Chen",
-      role: "EMPLOYEE",
-      branchId,
+      email: "mia.khalifa@{branch}.test",
+      name: "Mia Khalifa",
+      role: "EMPLOYEE" as const,
+      phone: "+1-555-0201",
+      position: "Dishwashing Specialist",
       skills: [
-        { zone: "Bar", level: "Expert" },
-        { zone: "Waiter", level: "Intermediate" },
+        { zone: "Dishwashing" as WorkZone, level: "Intermediate" as SkillLevel },
+        { zone: "Kitchen" as WorkZone, level: "Intermediate" as SkillLevel },
+        { zone: "Grill" as WorkZone, level: "Beginner" as SkillLevel },
       ],
     },
+    // Brundan Jagila - Burger Expert
     {
-      email: "waiter1@remo.test",
-      name: "James Wilson",
-      role: "EMPLOYEE",
-      branchId,
+      email: "brundan.jagila@{branch}.test",
+      name: "Brundan Jagila",
+      role: "EMPLOYEE" as const,
+      phone: "+371 25582867",
+      position: "Burger Specialist",
       skills: [
-        { zone: "Waiter", level: "Expert" },
-        { zone: "Host", level: "Expert" },
-        { zone: "Bar", level: "Beginner" },
+        { zone: "Grill" as WorkZone, level: "Expert" as SkillLevel },
+        { zone: "Meat" as WorkZone, level: "Expert" as SkillLevel },
+        { zone: "Fries" as WorkZone, level: "Intermediate" as SkillLevel },
       ],
     },
-    // Intermediate Staff
+    // Masood - Potato Expert
     {
-      email: "cook1@remo.test",
-      name: "Lisa Anderson",
-      role: "EMPLOYEE",
-      branchId,
+      email: "masood@{branch}.test",
+      name: "Masood",
+      role: "EMPLOYEE" as const,
+      phone: "+371 2000 0005",
+      position: "Potato Specialist",
       skills: [
-        { zone: "Kitchen", level: "Intermediate" },
-        { zone: "Salad", level: "Intermediate" },
-        { zone: "Fries", level: "Intermediate" },
+        { zone: "Fries" as WorkZone, level: "Expert" as SkillLevel },
+        { zone: "Kitchen" as WorkZone, level: "Intermediate" as SkillLevel },
+        { zone: "Salad" as WorkZone, level: "Beginner" as SkillLevel },
       ],
     },
+    // Manager (generic for other branches)
     {
-      email: "cook2@remo.test",
-      name: "David Kim",
-      role: "EMPLOYEE",
-      branchId,
+      email: "manager@{branch}.test",
+      name: "Branch Manager",
+      role: "MANAGER" as const,
+      phone: "+371 2000 0001",
+      position: "Branch Manager",
       skills: [
-        { zone: "Grill", level: "Intermediate" },
-        { zone: "Meat", level: "Intermediate" },
-        { zone: "Kitchen", level: "Beginner" },
+        { zone: "Kitchen" as WorkZone, level: "Expert" as SkillLevel },
+        { zone: "Grill" as WorkZone, level: "Expert" as SkillLevel },
+        { zone: "Bar" as WorkZone, level: "Intermediate" as SkillLevel },
       ],
     },
-    {
-      email: "waiter2@remo.test",
-      name: "Sophie Martin",
-      role: "EMPLOYEE",
-      branchId,
-      skills: [
-        { zone: "Waiter", level: "Intermediate" },
-        { zone: "Host", level: "Intermediate" },
-      ],
-    },
-    {
-      email: "dishwasher1@remo.test",
-      name: "Carlos Garcia",
-      role: "EMPLOYEE",
-      branchId,
-      skills: [
-        { zone: "Dishwashing", level: "Expert" },
-        { zone: "Kitchen", level: "Beginner" },
-      ],
-    },
-    // Beginner Staff
-    {
-      email: "trainee1@remo.test",
-      name: "Alex Thompson",
-      role: "EMPLOYEE",
-      branchId,
-      skills: [
-        { zone: "Waiter", level: "Beginner" },
-        { zone: "Host", level: "Beginner" },
-      ],
-    },
-    {
-      email: "trainee2@remo.test",
-      name: "Maria Santos",
-      role: "EMPLOYEE",
-      branchId,
-      skills: [
-        { zone: "Salad", level: "Beginner" },
-        { zone: "Fries", level: "Beginner" },
-      ],
-    },
-  ]
+  ],
 
+  // Shift templates (4 time slots × 9 zones × 7 days = ~252 shifts)
+  shiftTemplates: [
+    { startTime: "10:00", endTime: "14:00", zones: ["Kitchen", "Grill", "Waiter", "Host"] as WorkZone[] },
+    { startTime: "14:00", endTime: "18:00", zones: ["Kitchen", "Bar", "Waiter", "Dishwashing"] as WorkZone[] },
+    { startTime: "18:00", endTime: "22:00", zones: ["Grill", "Bar", "Waiter", "Kitchen", "Host", "Meat"] as WorkZone[] },
+    { startTime: "22:00", endTime: "02:00", zones: ["Bar", "Dishwashing", "Kitchen"] as WorkZone[] },
+  ],
+
+  // Task templates (17 tasks)
+  tasks: [
+    { title: "Prep vegetables for lunch service", category: "Preparation" as const, priority: "high" as const, zone: "Kitchen" as WorkZone, timeWindow: "08:00-10:00" },
+    { title: "Marinate meat for dinner", category: "Preparation" as const, priority: "high" as const, zone: "Meat" as WorkZone, timeWindow: "09:00-11:00" },
+    { title: "Set up bar station", category: "Preparation" as const, priority: "medium" as const, zone: "Bar" as WorkZone, timeWindow: "10:00-11:00" },
+    { title: "Prepare salad ingredients", category: "Preparation" as const, priority: "medium" as const, zone: "Salad" as WorkZone, timeWindow: "09:00-10:00" },
+    { title: "Cook lunch specials", category: "Cooking" as const, priority: "high" as const, zone: "Kitchen" as WorkZone, timeWindow: "11:00-14:00" },
+    { title: "Grill steaks for dinner", category: "Cooking" as const, priority: "high" as const, zone: "Grill" as WorkZone, timeWindow: "17:00-21:00" },
+    { title: "Prepare fries batches", category: "Cooking" as const, priority: "medium" as const, zone: "Fries" as WorkZone, timeWindow: "11:00-22:00" },
+    { title: "Serve lunch customers", category: "Serving" as const, priority: "high" as const, zone: "Waiter" as WorkZone, timeWindow: "12:00-15:00" },
+    { title: "Greet and seat guests", category: "Serving" as const, priority: "high" as const, zone: "Host" as WorkZone, timeWindow: "11:00-22:00" },
+    { title: "Mix cocktails for happy hour", category: "Serving" as const, priority: "medium" as const, zone: "Bar" as WorkZone, timeWindow: "17:00-19:00" },
+    { title: "Clean kitchen surfaces", category: "Cleaning" as const, priority: "high" as const, zone: "Kitchen" as WorkZone, timeWindow: "14:00-15:00" },
+    { title: "Wash dishes from lunch", category: "Cleaning" as const, priority: "high" as const, zone: "Dishwashing" as WorkZone, timeWindow: "14:00-16:00" },
+    { title: "Sanitize bar area", category: "Cleaning" as const, priority: "medium" as const, zone: "Bar" as WorkZone, timeWindow: "23:00-00:00" },
+    { title: "Deep clean grill station", category: "Cleaning" as const, priority: "low" as const, zone: "Grill" as WorkZone, timeWindow: "22:00-23:00" },
+    { title: "Check meat stock levels", category: "Inventory Management" as const, priority: "high" as const, zone: "Meat" as WorkZone, timeWindow: "08:00-09:00" },
+    { title: "Count beverage inventory", category: "Inventory Management" as const, priority: "medium" as const, zone: "Bar" as WorkZone, timeWindow: "09:00-10:00" },
+    { title: "Order vegetables for next week", category: "Inventory Management" as const, priority: "low" as const, zone: "Kitchen" as WorkZone, timeWindow: "15:00-16:00" },
+  ],
+}
+
+/**
+ * Seed staff using Urmo Projects template
+ */
+export async function seedStaff(branchId: string, branchName: string): Promise<UserProfile[]> {
   const createdStaff: UserProfile[] = []
   
-  for (const member of staff) {
+  // Replace {branch} placeholder with actual branch name (lowercase, no spaces)
+  const branchSlug = branchName.toLowerCase().replace(/\s+/g, "-")
+  
+  for (const template of URMO_TEMPLATE.staff) {
     try {
-      // Note: In production, this would use Firebase Auth to create users
-      // For now, we'll just create the profile documents
+      const member = {
+        ...template,
+        email: template.email.replace("{branch}", branchSlug),
+        branch: branchName,
+        branchId,
+      }
+      
       console.log(`[Seed] Would create staff: ${member.name} (${member.email})`)
+      // Note: In production, this would use Firebase Auth to create users
       // createdStaff.push(await createUserProfile(member))
     } catch (error) {
-      console.error(`[Seed] Error creating staff ${member.name}:`, error)
+      console.error(`[Seed] Error creating staff ${template.name}:`, error)
     }
   }
 
@@ -149,31 +167,18 @@ export async function seedStaff(branchId: string): Promise<UserProfile[]> {
 }
 
 /**
- * Seed realistic weekly shifts
+ * Seed shifts using Urmo Projects template
  */
-export async function seedShifts(branchId: string, weekLabel: string): Promise<void> {
+export async function seedShifts(branchId: string, weekLabel: string): Promise<number> {
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-  const zones: WorkZone[] = ["Grill", "Bar", "Waiter", "Kitchen", "Host", "Meat", "Salad", "Fries", "Dishwashing"]
-  
-  const shiftTemplates = [
-    // Morning shifts (10:00-14:00)
-    { startTime: "10:00", endTime: "14:00", zones: ["Kitchen", "Grill", "Waiter", "Host"] },
-    // Afternoon shifts (14:00-18:00)
-    { startTime: "14:00", endTime: "18:00", zones: ["Kitchen", "Bar", "Waiter", "Dishwashing"] },
-    // Evening shifts (18:00-22:00)
-    { startTime: "18:00", endTime: "22:00", zones: ["Grill", "Bar", "Waiter", "Kitchen", "Host", "Meat"] },
-    // Late shifts (22:00-02:00)
-    { startTime: "22:00", endTime: "02:00", zones: ["Bar", "Dishwashing", "Kitchen"] },
-  ]
-
   let shiftCount = 0
 
   for (const day of days) {
-    for (const template of shiftTemplates) {
+    for (const template of URMO_TEMPLATE.shiftTemplates) {
       for (const zone of template.zones) {
         try {
           await saveShift({
-            staffId: null, // Vacant initially
+            staffId: null,
             staffName: null,
             branchId,
             zone,
@@ -192,45 +197,16 @@ export async function seedShifts(branchId: string, weekLabel: string): Promise<v
     }
   }
 
-  console.log(`[Seed] Created ${shiftCount} shifts for week ${weekLabel}`)
+  return shiftCount
 }
 
 /**
- * Seed realistic tasks
+ * Seed tasks using Urmo Projects template
  */
-export async function seedTasks(branchId: string): Promise<void> {
-  const tasks = [
-    // Preparation
-    { title: "Prep vegetables for lunch service", category: "Preparation" as const, priority: "high" as const, zone: "Kitchen", timeWindow: "08:00-10:00" },
-    { title: "Marinate meat for dinner", category: "Preparation" as const, priority: "high" as const, zone: "Meat", timeWindow: "09:00-11:00" },
-    { title: "Set up bar station", category: "Preparation" as const, priority: "medium" as const, zone: "Bar", timeWindow: "10:00-11:00" },
-    { title: "Prepare salad ingredients", category: "Preparation" as const, priority: "medium" as const, zone: "Salad", timeWindow: "09:00-10:00" },
-    
-    // Cooking
-    { title: "Cook lunch specials", category: "Cooking" as const, priority: "high" as const, zone: "Kitchen", timeWindow: "11:00-14:00" },
-    { title: "Grill steaks for dinner", category: "Cooking" as const, priority: "high" as const, zone: "Grill", timeWindow: "17:00-21:00" },
-    { title: "Prepare fries batches", category: "Cooking" as const, priority: "medium" as const, zone: "Fries", timeWindow: "11:00-22:00" },
-    
-    // Serving
-    { title: "Serve lunch customers", category: "Serving" as const, priority: "high" as const, zone: "Waiter", timeWindow: "12:00-15:00" },
-    { title: "Greet and seat guests", category: "Serving" as const, priority: "high" as const, zone: "Host", timeWindow: "11:00-22:00" },
-    { title: "Mix cocktails for happy hour", category: "Serving" as const, priority: "medium" as const, zone: "Bar", timeWindow: "17:00-19:00" },
-    
-    // Cleaning
-    { title: "Clean kitchen surfaces", category: "Cleaning" as const, priority: "high" as const, zone: "Kitchen", timeWindow: "14:00-15:00" },
-    { title: "Wash dishes from lunch", category: "Cleaning" as const, priority: "high" as const, zone: "Dishwashing", timeWindow: "14:00-16:00" },
-    { title: "Sanitize bar area", category: "Cleaning" as const, priority: "medium" as const, zone: "Bar", timeWindow: "23:00-00:00" },
-    { title: "Deep clean grill station", category: "Cleaning" as const, priority: "low" as const, zone: "Grill", timeWindow: "22:00-23:00" },
-    
-    // Inventory Management
-    { title: "Check meat stock levels", category: "Inventory Management" as const, priority: "high" as const, zone: "Meat", timeWindow: "08:00-09:00" },
-    { title: "Count beverage inventory", category: "Inventory Management" as const, priority: "medium" as const, zone: "Bar", timeWindow: "09:00-10:00" },
-    { title: "Order vegetables for next week", category: "Inventory Management" as const, priority: "low" as const, zone: "Kitchen", timeWindow: "15:00-16:00" },
-  ]
-
+export async function seedTasks(branchId: string): Promise<number> {
   let taskCount = 0
 
-  for (const task of tasks) {
+  for (const task of URMO_TEMPLATE.tasks) {
     try {
       await saveTask(task)
       taskCount++
@@ -239,11 +215,11 @@ export async function seedTasks(branchId: string): Promise<void> {
     }
   }
 
-  console.log(`[Seed] Created ${taskCount} tasks`)
+  return taskCount
 }
 
 /**
- * Seed all data for a branch
+ * Seed all data for a branch using Urmo Projects template
  */
 export async function seedAllData(options: SeedOptions): Promise<{
   success: boolean
@@ -266,26 +242,25 @@ export async function seedAllData(options: SeedOptions): Promise<{
 
   try {
     console.log(`[Seed] Starting seed for branch: ${branchName} (${branchId})`)
+    console.log(`[Seed] Using Urmo Projects template`)
 
     // Seed staff
     if (includeStaff) {
-      const staff = await seedStaff(branchId)
-      details.staff = staff.length
+      const staff = await seedStaff(branchId, branchName)
+      details.staff = URMO_TEMPLATE.staff.length
       console.log(`[Seed] ✓ Staff: ${details.staff} members`)
     }
 
     // Seed shifts
     if (includeShifts) {
       const weekLabel = `Week-${new Date().getFullYear()}-${Math.ceil((new Date().getDate()) / 7)}`
-      await seedShifts(branchId, weekLabel)
-      details.shifts = 7 * 4 * 9 // 7 days * 4 shift templates * ~9 zones avg = ~252 shifts
-      console.log(`[Seed] ✓ Shifts: ~${details.shifts} shifts`)
+      details.shifts = await seedShifts(branchId, weekLabel)
+      console.log(`[Seed] ✓ Shifts: ${details.shifts} shifts`)
     }
 
     // Seed tasks
     if (includeTasks) {
-      await seedTasks(branchId)
-      details.tasks = 17
+      details.tasks = await seedTasks(branchId)
       console.log(`[Seed] ✓ Tasks: ${details.tasks} tasks`)
     }
 
@@ -298,7 +273,7 @@ export async function seedAllData(options: SeedOptions): Promise<{
 
     return {
       success: true,
-      message: `Successfully seeded ${branchName} with realistic data`,
+      message: `Successfully seeded ${branchName} with Urmo Projects template data`,
       details,
     }
   } catch (error: any) {
@@ -312,10 +287,14 @@ export async function seedAllData(options: SeedOptions): Promise<{
 }
 
 /**
- * Clear all data for a branch (use with caution!)
+ * Get template info for display
  */
-export async function clearBranchData(branchId: string): Promise<void> {
-  console.warn(`[Seed] Clearing all data for branch: ${branchId}`)
-  // Implementation would delete all shifts, tasks, inventory, etc. for this branch
-  // Left as exercise - requires careful implementation to avoid data loss
+export function getTemplateInfo() {
+  return {
+    name: URMO_TEMPLATE.branchName,
+    staff: URMO_TEMPLATE.staff.length,
+    shifts: 7 * URMO_TEMPLATE.shiftTemplates.reduce((sum, t) => sum + t.zones.length, 0),
+    tasks: URMO_TEMPLATE.tasks.length,
+    inventory: 18,
+  }
 }

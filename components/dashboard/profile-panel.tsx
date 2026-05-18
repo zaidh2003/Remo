@@ -344,6 +344,19 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
     setError("")
   }
 
+  // Sync local state when the profile context changes externally
+  // (e.g. admin/manager updated this user's details from another screen)
+  useEffect(() => {
+    if (!editing) {
+      setName(profile?.name ?? "")
+      setPhone(profile?.phone ?? "")
+      setPosition(profile?.position ?? "")
+      setBranch(profile?.branch ?? "")
+      setSkills(profile?.skills ?? [])
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile])
+
   const initials = (profile?.name ?? profile?.email ?? "?")
     .split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
 

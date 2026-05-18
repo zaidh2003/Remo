@@ -6,6 +6,7 @@ import {
   XCircle, Clock, MapPin, User, Send, RefreshCw,
 } from "lucide-react"
 import { useAuth } from "@/components/providers/auth-provider"
+import { useBranches } from "@/hooks/use-branches"
 import {
   createShortageAlert, getAllShortageAlerts, updateShortageAlertStatus,
   respondToShortageAlert, getMyShortageResponse, getEmployeesWithZones,
@@ -25,12 +26,14 @@ const statusColors: Record<string, string> = {
 // ── Create Alert Form ─────────────────────────────────────────────────────────
 function CreateAlertForm({ onCreated }: { onCreated: () => void }) {
   const { profile } = useAuth()
+  const { branches } = useBranches()
   const [zone, setZone]         = useState<WorkZone>("Kitchen")
   const [date, setDate]         = useState("")
   const [start, setStart]       = useState("")
   const [end, setEnd]           = useState("")
   const [reason, setReason]     = useState("")
-  const [branch, setBranch]     = useState(profile?.branch || "")
+  // Store the branch ID; derive name from the branches list
+  const [branchId, setBranchId] = useState(profile?.branch || "")
   const [saving, setSaving]     = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
   const [aiSuggestion, setAiSuggestion] = useState<{ uid: string; name: string; reason: string } | null>(null)
@@ -80,8 +83,8 @@ function CreateAlertForm({ onCreated }: { onCreated: () => void }) {
       await createShortageAlert({
         createdBy: profile.uid,
         createdByName: profile.name || profile.email,
-        branchId: profile.branch || "main",
-        branchName: branch || profile.branch || "Main Branch",
+        branchId: branchId || profile.branch || "main",
+        branchName: branches.find((b) => b.id === branchId)?.name || branchId || profile.branch || "Main Branch",
         zone,
         date,
         startTime: start,
@@ -119,16 +122,19 @@ function CreateAlertForm({ onCreated }: { onCreated: () => void }) {
           </select>
         </div>
 
-        {/* Branch */}
+        {/* Branch — dropdown from admin-created branches */}
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Branch</label>
-          <input
-            type="text"
-            value={branch}
-            onChange={(e) => setBranch(e.target.value)}
-            placeholder="e.g. Branch A"
+          <select
+            value={branchId}
+            onChange={(e) => setBranchId(e.target.value)}
             className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary"
-          />
+          >
+            <option value="">Select branch…</option>
+            {branches.map((b) => (
+              <option key={b.id} value={b.id}>{b.name}</option>
+            ))}
+          </select>
         </div>
 
         {/* Date */}

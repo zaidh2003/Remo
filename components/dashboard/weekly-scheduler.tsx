@@ -32,9 +32,10 @@ function getWeekLabel() {
 
 // ── Add Shift Modal ───────────────────────────────────────────────────────────
 function AddShiftModal({
-  day, weekLabel, staff, onClose, onSaved,
+  day, weekLabel, staff, managerBranch, onClose, onSaved,
 }: {
   day: string; weekLabel: string; staff: UserProfile[]
+  managerBranch: string
   onClose: () => void; onSaved: () => void
 }) {
   const [staffId, setStaffId]   = useState("")
@@ -52,10 +53,14 @@ function AddShiftModal({
     }
     setSaving(true); setError("")
     try {
+      // Use the manager's own branch first; fall back to staff's branch,
+      // then "main" — always store a non-empty string so the subscription
+      // filter (branchId === myBranch) can match correctly in the future.
+      const shiftBranchId = managerBranch || selectedStaff?.branch || "main"
       const shiftId = await saveShift({
         staffId,
         staffName: selectedStaff?.name || selectedStaff?.email || "Unknown",
-        branchId: selectedStaff?.branch || "main",
+        branchId: shiftBranchId,
         zone, day, startTime, endTime,
         isEmergency: false,
         status: "upcoming",
@@ -67,7 +72,7 @@ function AddShiftModal({
           id: shiftId,
           staffId,
           staffName: selectedStaff?.name || selectedStaff?.email || "Unknown",
-          branchId: selectedStaff?.branch || "main",
+          branchId: shiftBranchId,
           zone, 
           day, 
           startTime, 
@@ -334,8 +339,14 @@ export function WeeklyScheduler() {
   // Real-time shifts subscription — filter by branch for MANAGER
   useEffect(() => {
     const unsub = subscribeToShifts(weekLabel, (fetched) => {
-      // ADMIN sees all; MANAGER sees own branch only
-      const scoped = isAdmin ? fetched : fetched.filter((s) => s.branchId === myBranch)
+      // ADMIN sees all shifts.
+      // MANAGER with a branch set sees only their branch.
+      // MANAGER with no branch set (myBranch is "") sees all shifts —
+      //   the empty-string filter would hide every saved shift otherwise.
+      const scoped =
+        isAdmin || !myBranch
+          ? fetched
+          : fetched.filter((s) => s.branchId === myBranch)
       setAllShifts(scoped)
     })
     return () => unsub()
@@ -490,6 +501,7 @@ export function WeeklyScheduler() {
           day={addingDay}
           weekLabel={weekLabel}
           staff={staff}
+          managerBranch={myBranch}
           onClose={() => setAddingDay(null)}
           onSaved={() => setAddingDay(null)}
         />
