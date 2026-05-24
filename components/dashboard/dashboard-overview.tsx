@@ -110,7 +110,7 @@ function EmployeeQuickActions({ onNavigate }: { onNavigate?: (tab: string) => vo
       <CardContent className="space-y-3">
         <button
           type="button"
-          onClick={() => onNavigate?.("shortage")}
+          onClick={() => onNavigate?.("sick-leave")}
           className="w-full rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 text-sm font-medium transition-colors hover:bg-red-500/20 cursor-pointer text-left flex items-center gap-2"
         >
           <Bell className="h-4 w-4" /> Report Sick Leave

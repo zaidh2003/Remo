@@ -1,6 +1,6 @@
 import type { Staff, Shift, Task, ForecastData, InventoryItem } from "./types"
 
-export const staffData: Staff[] = [
+export const staffData: any[] = [
   { id: "1", name: "Sarah Chen", role: "Chef", skillLevel: 5, hourlyRate: 28, availability: "available", avatar: "SC", constraints: "Cannot work past 10 PM" },
   { id: "2", name: "Marcus Johnson", role: "Server", skillLevel: 4, hourlyRate: 18, availability: "busy", avatar: "MJ" },
   { id: "3", name: "Emily Rodriguez", role: "Inventory Specialist", skillLevel: 4, hourlyRate: 22, availability: "available", avatar: "ER" },
@@ -11,7 +11,7 @@ export const staffData: Staff[] = [
   { id: "8", name: "Michael Brown", role: "Chef", skillLevel: 4, hourlyRate: 26, availability: "available", avatar: "MB" },
 ]
 
-export const initialShifts: Shift[] = [
+export const initialShifts: any[] = [
   { id: "1", staffId: "1", staffName: "Sarah Chen", role: "Chef", day: "Monday", startTime: "11:00", endTime: "19:00", status: "optimal" },
   { id: "2", staffId: "2", staffName: "Marcus Johnson", role: "Server", day: "Monday", startTime: "10:00", endTime: "18:00", status: "optimal" },
   { id: "3", staffId: "5", staffName: "Lisa Thompson", role: "Server", day: "Monday", startTime: "16:00", endTime: "23:00", status: "understaffed" },
@@ -56,7 +56,7 @@ export const forecastData: ForecastData[] = [
   { time: "22:00", predicted: 45, historical: 42 },
 ]
 
-export const inventoryItems: InventoryItem[] = [
+export const inventoryItems: any[] = [
   { id: "1", name: "Chicken Breast", category: "Proteins", quantity: 45, unit: "lbs", minStock: 50, status: "low" },
   { id: "2", name: "Salmon Fillet", category: "Proteins", quantity: 30, unit: "lbs", minStock: 25, status: "in-stock" },
   { id: "3", name: "Mixed Greens", category: "Produce", quantity: 8, unit: "cases", minStock: 15, status: "critical" },

@@ -5,11 +5,11 @@ import { useAuth } from "@/components/providers/auth-provider"
 import { getAllUsers } from "@/lib/services/user-service"
 import {
   saveShift, saveTask, seedInventoryData, sendNotification,
-  createSwapRequest, saveForecastEntry,
+  createSwapRequest, saveForecastEntry, saveInventoryItem,
 } from "@/lib/services/data-service"
 import { createShortageAlert } from "@/lib/services/user-service"
 import { db } from "@/lib/firebase"
-import { collection, addDoc, serverTimestamp, getDocs, deleteDoc, query, where } from "firebase/firestore"
+import { collection, addDoc, serverTimestamp, getDocs, deleteDoc, query, where, doc, setDoc } from "firebase/firestore"
 import {
   Database, CheckCircle, Loader2, AlertTriangle, ChevronDown, ChevronUp,
   Users, Calendar, ClipboardList, Package, ArrowRightLeft, BellRing,
@@ -32,6 +32,28 @@ function daysFromNow(n: number) {
 }
 
 // ── Module Seeders ─────────────────────────────────────────────────────────────
+
+async function seedUsers(branch: string): Promise<UserProfile[]> {
+  const demoUsers = [
+    { uid: "demo-uid-manager", email: "manager@remo.demo", name: "Sarah Manager", role: "MANAGER" as const, branch, position: "Head Manager", phone: "+1-555-0101", skills: [{ zone: "Kitchen" as any, level: "Expert" as any }, { zone: "Grill" as any, level: "Expert" as any }] },
+    { uid: "demo-uid-chef", email: "chef@remo.demo", name: "Marco Chef", role: "EMPLOYEE" as const, branch, position: "Head Chef", phone: "+1-555-0102", skills: [{ zone: "Grill" as any, level: "Expert" as any }, { zone: "Meat" as any, level: "Expert" as any }, { zone: "Kitchen" as any, level: "Expert" as any }] },
+    { uid: "demo-uid-bartender", email: "bartender@remo.demo", name: "Emma Bartender", role: "EMPLOYEE" as const, branch, position: "Bartender", phone: "+1-555-0103", skills: [{ zone: "Bar" as any, level: "Expert" as any }, { zone: "Waiter" as any, level: "Intermediate" as any }] },
+    { uid: "demo-uid-waiter", email: "waiter@remo.demo", name: "James Waiter", role: "EMPLOYEE" as const, branch, position: "Senior Waiter", phone: "+1-555-0104", skills: [{ zone: "Waiter" as any, level: "Expert" as any }, { zone: "Host" as any, level: "Expert" as any }] },
+    { uid: "demo-uid-cook", email: "cook@remo.demo", name: "Lisa Cook", role: "EMPLOYEE" as const, branch, position: "Line Cook", phone: "+1-555-0105", skills: [{ zone: "Kitchen" as any, level: "Intermediate" as any }, { zone: "Salad" as any, level: "Intermediate" as any }, { zone: "Fries" as any, level: "Intermediate" as any }] },
+    { uid: "demo-uid-dishwasher", email: "dishwasher@remo.demo", name: "Carlos Dish", role: "EMPLOYEE" as const, branch, position: "Kitchen Hand", phone: "+1-555-0106", skills: [{ zone: "Dishwashing" as any, level: "Expert" as any }, { zone: "Kitchen" as any, level: "Beginner" as any }] },
+    { uid: "demo-uid-host", email: "host@remo.demo", name: "Sophie Host", role: "EMPLOYEE" as const, branch, position: "Host", phone: "+1-555-0107", skills: [{ zone: "Host" as any, level: "Intermediate" as any }, { zone: "Waiter" as any, level: "Beginner" as any }] },
+  ]
+
+  for (const u of demoUsers) {
+    await setDoc(doc(db, "users", u.uid), {
+      ...u,
+      isDemo: true,
+      createdAt: serverTimestamp(),
+    })
+  }
+
+  return demoUsers as any[]
+}
 
 async function seedShifts(users: UserProfile[], branch: string): Promise<number> {
   const employees = users.filter((u) => u.branch === branch || !branch)
@@ -66,7 +88,8 @@ async function seedShifts(users: UserProfile[], branch: string): Promise<number>
         isEmergency: false,
         status:    "upcoming",
         weekLabel,
-      })
+        isDemo: true, // Mark as demo data
+      } as any)
       userIdx++
       count++
     }
@@ -102,6 +125,7 @@ async function seedTasks(users: UserProfile[]): Promise<number> {
     await saveTask({
       ...task as any,
       assignedTo: assignee?.name || assignee?.email || undefined,
+      isDemo: true, // Mark as demo data
     })
     idx++
   }
@@ -125,12 +149,40 @@ async function seedForecast(): Promise<number> {
     { time: "22:00", predicted: 65,  historical: 62 },
   ]
   for (const entry of entries) {
-    await saveForecastEntry(todayStr(), entry)
+    await saveForecastEntry(todayStr(), { ...entry, isDemo: true } as any)
   }
   return entries.length
 }
 
-async function seedShortageAlerts(creator: UserProfile): Promise<number> {
+async function seedInventory(branch: string): Promise<number> {
+  const seedItems = [
+    { name: "Chicken Breast", category: "Meat & Seafood", currentStock: 25, minimumStock: 30, unit: "kg", branchId: branch, isDemo: true },
+    { name: "Salmon Fillet", category: "Meat & Seafood", currentStock: 12, minimumStock: 20, unit: "kg", branchId: branch, isDemo: true },
+    { name: "Ground Beef", category: "Meat & Seafood", currentStock: 8, minimumStock: 25, unit: "kg", branchId: branch, isDemo: true },
+    { name: "Tomatoes", category: "Vegetables & Fruits", currentStock: 15, minimumStock: 20, unit: "kg", branchId: branch, isDemo: true },
+    { name: "Lettuce", category: "Vegetables & Fruits", currentStock: 10, minimumStock: 15, unit: "kg", branchId: branch, isDemo: true },
+    { name: "Onions", category: "Vegetables & Fruits", currentStock: 18, minimumStock: 25, unit: "kg", branchId: branch, isDemo: true },
+    { name: "Milk", category: "Dairy & Eggs", currentStock: 40, minimumStock: 50, unit: "L", branchId: branch, isDemo: true },
+    { name: "Eggs", category: "Dairy & Eggs", currentStock: 120, minimumStock: 200, unit: "units", branchId: branch, isDemo: true },
+    { name: "Cheese", category: "Dairy & Eggs", currentStock: 8, minimumStock: 15, unit: "kg", branchId: branch, isDemo: true },
+    { name: "Flour", category: "Dry Goods", currentStock: 45, minimumStock: 50, unit: "kg", branchId: branch, isDemo: true },
+    { name: "Rice", category: "Dry Goods", currentStock: 30, minimumStock: 40, unit: "kg", branchId: branch, isDemo: true },
+    { name: "Pasta", category: "Dry Goods", currentStock: 22, minimumStock: 30, unit: "kg", branchId: branch, isDemo: true },
+    { name: "Orange Juice", category: "Beverages", currentStock: 25, minimumStock: 30, unit: "L", branchId: branch, isDemo: true },
+    { name: "Coffee Beans", category: "Beverages", currentStock: 6, minimumStock: 10, unit: "kg", branchId: branch, isDemo: true },
+    { name: "Bottled Water", category: "Beverages", currentStock: 80, minimumStock: 100, unit: "units", branchId: branch, isDemo: true },
+    { name: "Dish Soap", category: "Cleaning Supplies", currentStock: 8, minimumStock: 15, unit: "L", branchId: branch, isDemo: true },
+    { name: "Sanitizer", category: "Cleaning Supplies", currentStock: 5, minimumStock: 12, unit: "L", branchId: branch, isDemo: true },
+    { name: "Paper Towels", category: "Disposables", currentStock: 30, minimumStock: 50, unit: "rolls", branchId: branch, isDemo: true },
+  ]
+  for (const item of seedItems) {
+    await saveInventoryItem(item as any)
+  }
+  return seedItems.length
+}
+
+async function seedShortageAlerts(creator: UserProfile, users: UserProfile[]): Promise<number> {
+  const chef = users.find((u) => u.email === "chef@remo.demo")
   const alerts = [
     {
       zone: "Grill" as const,
@@ -139,6 +191,8 @@ async function seedShortageAlerts(creator: UserProfile): Promise<number> {
       endTime: "23:00",
       reason: "Staff called in sick — short notice",
       priority: "HIGH" as const,
+      aiSuggestedUid: chef?.uid || null,
+      aiReason: chef ? "Marco has Expert Grill skills and is available during this window." : null,
     },
     {
       zone: "Bar" as const,
@@ -147,6 +201,8 @@ async function seedShortageAlerts(creator: UserProfile): Promise<number> {
       endTime: "02:00",
       reason: "Expected high footfall — extra cover needed",
       priority: "NORMAL" as const,
+      aiSuggestedUid: null,
+      aiReason: null,
     },
     {
       zone: "Waiter" as const,
@@ -155,6 +211,8 @@ async function seedShortageAlerts(creator: UserProfile): Promise<number> {
       endTime: "16:00",
       reason: "Staff on approved leave",
       priority: "NORMAL" as const,
+      aiSuggestedUid: null,
+      aiReason: null,
     },
   ]
   for (const a of alerts) {
@@ -165,7 +223,8 @@ async function seedShortageAlerts(creator: UserProfile): Promise<number> {
       branchName:    creator.branch || "Main Branch",
       status: "OPEN",
       ...a,
-    })
+      isDemo: true, // Mark as demo data
+    } as any)
   }
   return alerts.length
 }
@@ -181,13 +240,15 @@ async function seedSwapRequests(users: UserProfile[]): Promise<number> {
     branchId: employees[0].branch || "Main Branch",
     zone: "Kitchen", day: "Saturday", startTime: "10:00", endTime: "18:00",
     isEmergency: false, status: "upcoming", weekLabel,
-  })
+    isDemo: true,
+  } as any)
   const shiftB = await saveShift({
     staffId: employees[1].uid, staffName: employees[1].name || employees[1].email,
     branchId: employees[1].branch || "Main Branch",
     zone: "Bar", day: "Saturday", startTime: "18:00", endTime: "02:00",
     isEmergency: false, status: "upcoming", weekLabel,
-  })
+    isDemo: true,
+  } as any)
 
   await createSwapRequest({
     requesterId:      employees[0].uid,
@@ -197,7 +258,8 @@ async function seedSwapRequests(users: UserProfile[]): Promise<number> {
     targetName:       employees[1].name || employees[1].email || "Employee 2",
     targetShiftId:    shiftB,
     status: "PENDING",
-  })
+    isDemo: true, // Mark as demo data
+  } as any)
   return 1
 }
 
@@ -213,6 +275,7 @@ async function seedTaxiRequests(users: UserProfile[]): Promise<number> {
     status:    "PENDING" as const,
     requestTime: new Date().toISOString(),
     branch: u.branch || "Main Branch",
+    isDemo: true, // Mark as demo data
   }))
 
   for (const r of requests) {
@@ -229,15 +292,21 @@ async function seedNotifications(users: UserProfile[]): Promise<number> {
     { title: "🚖 Transport Request Received",    body: "Taxi pickup request submitted for 08:45 — awaiting manager approval.", type: "taxi" as const },
   ]
   for (const n of notifs) {
-    await sendNotification("all", n.title, n.body, n.type)
+    await addDoc(collection(db, "notifications"), {
+      uid: "all",
+      ...n,
+      read: false,
+      isDemo: true, // Mark as demo data
+      createdAt: serverTimestamp(),
+    })
   }
   return notifs.length
 }
 
-// ── Data Removal Functions ─────────────────────────────────────────────────────
+// ── Data Removal Functions (Selective Deletion of Demo Data) ──────────────────
 
-async function removeAllShifts(): Promise<number> {
-  const snapshot = await getDocs(collection(db, "shifts"))
+async function removeAllDemoUsers(): Promise<number> {
+  const snapshot = await getDocs(query(collection(db, "users"), where("isDemo", "==", true)))
   let count = 0
   for (const doc of snapshot.docs) {
     await deleteDoc(doc.ref)
@@ -246,8 +315,8 @@ async function removeAllShifts(): Promise<number> {
   return count
 }
 
-async function removeAllTasks(): Promise<number> {
-  const snapshot = await getDocs(collection(db, "tasks"))
+async function removeAllDemoShifts(): Promise<number> {
+  const snapshot = await getDocs(query(collection(db, "shifts"), where("isDemo", "==", true)))
   let count = 0
   for (const doc of snapshot.docs) {
     await deleteDoc(doc.ref)
@@ -256,8 +325,8 @@ async function removeAllTasks(): Promise<number> {
   return count
 }
 
-async function removeAllForecast(): Promise<number> {
-  const snapshot = await getDocs(collection(db, "forecast"))
+async function removeAllDemoTasks(): Promise<number> {
+  const snapshot = await getDocs(query(collection(db, "tasks"), where("isDemo", "==", true)))
   let count = 0
   for (const doc of snapshot.docs) {
     await deleteDoc(doc.ref)
@@ -266,8 +335,8 @@ async function removeAllForecast(): Promise<number> {
   return count
 }
 
-async function removeAllInventory(): Promise<number> {
-  const snapshot = await getDocs(collection(db, "inventory"))
+async function removeAllDemoForecast(): Promise<number> {
+  const snapshot = await getDocs(query(collection(db, "forecast"), where("isDemo", "==", true)))
   let count = 0
   for (const doc of snapshot.docs) {
     await deleteDoc(doc.ref)
@@ -276,8 +345,8 @@ async function removeAllInventory(): Promise<number> {
   return count
 }
 
-async function removeAllShortageAlerts(): Promise<number> {
-  const snapshot = await getDocs(collection(db, "shortageAlerts"))
+async function removeAllDemoInventory(): Promise<number> {
+  const snapshot = await getDocs(query(collection(db, "inventory"), where("isDemo", "==", true)))
   let count = 0
   for (const doc of snapshot.docs) {
     await deleteDoc(doc.ref)
@@ -286,8 +355,8 @@ async function removeAllShortageAlerts(): Promise<number> {
   return count
 }
 
-async function removeAllSwapRequests(): Promise<number> {
-  const snapshot = await getDocs(collection(db, "swapRequests"))
+async function removeAllDemoShortageAlerts(): Promise<number> {
+  const snapshot = await getDocs(query(collection(db, "shortageAlerts"), where("isDemo", "==", true)))
   let count = 0
   for (const doc of snapshot.docs) {
     await deleteDoc(doc.ref)
@@ -296,8 +365,8 @@ async function removeAllSwapRequests(): Promise<number> {
   return count
 }
 
-async function removeAllTaxiRequests(): Promise<number> {
-  const snapshot = await getDocs(collection(db, "taxis"))
+async function removeAllDemoSwapRequests(): Promise<number> {
+  const snapshot = await getDocs(query(collection(db, "swapRequests"), where("isDemo", "==", true)))
   let count = 0
   for (const doc of snapshot.docs) {
     await deleteDoc(doc.ref)
@@ -306,8 +375,18 @@ async function removeAllTaxiRequests(): Promise<number> {
   return count
 }
 
-async function removeAllNotifications(): Promise<number> {
-  const snapshot = await getDocs(collection(db, "notifications"))
+async function removeAllDemoTaxiRequests(): Promise<number> {
+  const snapshot = await getDocs(query(collection(db, "taxis"), where("isDemo", "==", true)))
+  let count = 0
+  for (const doc of snapshot.docs) {
+    await deleteDoc(doc.ref)
+    count++
+  }
+  return count
+}
+
+async function removeAllDemoNotifications(): Promise<number> {
+  const snapshot = await getDocs(query(collection(db, "notifications"), where("isDemo", "==", true)))
   let count = 0
   for (const doc of snapshot.docs) {
     await deleteDoc(doc.ref)
@@ -317,7 +396,7 @@ async function removeAllNotifications(): Promise<number> {
 }
 
 // ── Main Component ─────────────────────────────────────────────────────────────
-type ModuleKey = "shifts" | "tasks" | "forecast" | "inventory" | "shortage" | "swaps" | "taxi" | "notifications"
+type ModuleKey = "users" | "shifts" | "tasks" | "forecast" | "inventory" | "shortage" | "swaps" | "taxi" | "notifications"
 
 interface ModuleStatus {
   status: "idle" | "running" | "done" | "error"
@@ -326,6 +405,7 @@ interface ModuleStatus {
 }
 
 const MODULES: { key: ModuleKey; label: string; icon: any; description: string }[] = [
+  { key: "users",         label: "Demo Employees",      icon: Users,          description: "7 realistic employees with positions, phone numbers, and expert skills" },
   { key: "shifts",        label: "Shift Schedule",     icon: Calendar,       description: "70 realistic assigned shifts across all 7 days & 10 zones" },
   { key: "tasks",         label: "Task Board",          icon: ClipboardList,  description: "17 tasks across all categories, assigned to employees" },
   { key: "forecast",      label: "Demand Forecast",     icon: TrendingUp,     description: "13 hourly footfall data points for today's chart" },
@@ -352,44 +432,59 @@ export function DemoDataSeeder() {
     setRunning(true)
     setStatuses({})
 
-    let users: UserProfile[] = []
-    try {
-      users = await getAllUsers()
-    } catch {
-      toast.error("Failed to fetch users — are you signed in as ADMIN?")
-      setRunning(false)
-      return
-    }
-
     const branch = profile?.branch || "Main Branch"
-    const managerOrAdmin = users.find((u) => u.role === "MANAGER" || u.role === "ADMIN") || profile!
+    const managerOrAdmin = profile!
 
-    // Run each module sequentially so errors are isolated
-    const run = async (key: ModuleKey, fn: () => Promise<number>) => {
-      setStatus(key, { status: "running" })
+    try {
+      // 1. Seed Users first
+      setStatus("users", { status: "running" })
+      let demoUsers: UserProfile[] = []
       try {
-        const count = await fn()
-        setStatus(key, { status: "done", count })
+        demoUsers = await seedUsers(branch)
+        setStatus("users", { status: "done", count: demoUsers.length })
       } catch (e: any) {
-        setStatus(key, { status: "error", error: e.message })
+        setStatus("users", { status: "error", error: e.message })
+        throw e
       }
+
+      // Load all users to make sure we assign shifts/tasks to them
+      let allUsers: UserProfile[] = []
+      try {
+        allUsers = await getAllUsers()
+      } catch (e: any) {
+        allUsers = demoUsers
+      }
+
+      // Sequential seeding with safe isolated catches
+      const run = async (key: ModuleKey, fn: () => Promise<number>) => {
+        setStatus(key, { status: "running" })
+        try {
+          const count = await fn()
+          setStatus(key, { status: "done", count })
+        } catch (e: any) {
+          setStatus(key, { status: "error", error: e.message })
+        }
+      }
+
+      await run("shifts",        () => seedShifts(allUsers, branch))
+      await run("tasks",         () => seedTasks(allUsers))
+      await run("forecast",      () => seedForecast())
+      await run("inventory",     () => seedInventory(branch))
+      await run("shortage",      () => seedShortageAlerts(managerOrAdmin, allUsers))
+      await run("swaps",         () => seedSwapRequests(allUsers))
+      await run("taxi",          () => seedTaxiRequests(allUsers))
+      await run("notifications", () => seedNotifications(allUsers))
+
+      toast.success("Demo data seeded cleanly! Feel free to explore the dashboard tabs.")
+    } catch (error: any) {
+      toast.error("Failed to seed demo users: " + error.message)
+    } finally {
+      setRunning(false)
     }
-
-    await run("shifts",        () => seedShifts(users, branch))
-    await run("tasks",         () => seedTasks(users))
-    await run("forecast",      () => seedForecast())
-    await run("inventory",     () => seedInventoryData(branch).then(() => 18))
-    await run("shortage",      () => seedShortageAlerts(managerOrAdmin))
-    await run("swaps",         () => seedSwapRequests(users))
-    await run("taxi",          () => seedTaxiRequests(users))
-    await run("notifications", () => seedNotifications(users))
-
-    setRunning(false)
-    toast.success("Demo data seeded! Refresh any module to see the data.")
   }
 
   const removeAll = async () => {
-    if (!confirm("⚠️ This will permanently delete ALL data from shifts, tasks, inventory, alerts, swaps, taxis, notifications, and forecast. Are you sure?")) {
+    if (!confirm("⚠️ This will permanently delete ONLY the seeded demo data (demo employees, shifts, tasks, inventory, shortage alerts, swaps, taxis, notifications, and forecast). Are you sure?")) {
       return
     }
 
@@ -406,17 +501,18 @@ export function DemoDataSeeder() {
       }
     }
 
-    await run("shifts",        removeAllShifts)
-    await run("tasks",         removeAllTasks)
-    await run("forecast",      removeAllForecast)
-    await run("inventory",     removeAllInventory)
-    await run("shortage",      removeAllShortageAlerts)
-    await run("swaps",         removeAllSwapRequests)
-    await run("taxi",          removeAllTaxiRequests)
-    await run("notifications", removeAllNotifications)
+    await run("users",         removeAllDemoUsers)
+    await run("shifts",        removeAllDemoShifts)
+    await run("tasks",         removeAllDemoTasks)
+    await run("forecast",      removeAllDemoForecast)
+    await run("inventory",     removeAllDemoInventory)
+    await run("shortage",      removeAllDemoShortageAlerts)
+    await run("swaps",         removeAllDemoSwapRequests)
+    await run("taxi",          removeAllDemoTaxiRequests)
+    await run("notifications", removeAllDemoNotifications)
 
     setRemoving(false)
-    toast.success("All seed data removed! Refresh any module to confirm.")
+    toast.success("All demo data cleanly removed!")
   }
 
   const allDone = MODULES.every((m) => statuses[m.key]?.status === "done")
@@ -448,17 +544,17 @@ export function DemoDataSeeder() {
           <button
             onClick={removeAll}
             disabled={running || removing}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-destructive text-destructive-foreground text-sm font-semibold hover:bg-destructive/90 disabled:opacity-60 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-destructive text-destructive-foreground text-sm font-semibold hover:bg-destructive/90 disabled:opacity-60 transition-colors cursor-pointer"
           >
             {removing
               ? <><Loader2 className="h-4 w-4 animate-spin" /> Removing…</>
-              : <><Trash2 className="h-4 w-4" /> Remove All Data</>
+              : <><Trash2 className="h-4 w-4" /> Clean Demo Data</>
             }
           </button>
           <button
             onClick={runAll}
             disabled={running || removing}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-60 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-60 transition-colors cursor-pointer"
           >
             {running
               ? <><Loader2 className="h-4 w-4 animate-spin" /> Seeding…</>
@@ -480,7 +576,7 @@ export function DemoDataSeeder() {
             : ""
         }`}>
           {allDone && !anyError
-            ? <><CheckCircle className="h-4 w-4 shrink-0" /> {removing ? "All data removed successfully!" : "All modules seeded successfully! Navigate to any section to see live data."}</>
+            ? <><CheckCircle className="h-4 w-4 shrink-0" /> {removing ? "All demo data cleanly removed!" : "All modules seeded successfully! Navigate to any section to see live data."}</>
             : <><AlertTriangle className="h-4 w-4 shrink-0" /> Some modules failed — check details below.</>
           }
         </div>
@@ -534,8 +630,8 @@ export function DemoDataSeeder() {
 
       {!expanded && (
         <p className="text-xs text-muted-foreground">
-          Seeds shifts, tasks, forecast chart, inventory, shortage alerts, swap requests, taxi requests and notifications using your existing registered users.{" "}
-          <button onClick={() => setExpanded(true)} className="text-primary hover:underline">
+          Seeds employees, shifts, tasks, forecast chart, inventory, shortage alerts, swap requests, taxi requests and notifications safely tagged.{" "}
+          <button onClick={() => setExpanded(true)} className="text-primary hover:underline font-medium">
             View details →
           </button>
         </p>

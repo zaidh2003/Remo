@@ -5,7 +5,7 @@
  */
 
 import { saveBranch, saveShift, saveTask, seedInventoryData, sendNotification } from "./data-service"
-import { createUserProfile, type UserProfile } from "./user-service"
+import { type UserProfile } from "./user-service"
 import type { WorkZone, SkillLevel } from "@/lib/types"
 
 export interface SeedOptions {

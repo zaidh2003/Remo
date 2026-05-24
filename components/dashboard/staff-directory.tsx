@@ -8,11 +8,12 @@ import { cn } from "@/lib/utils"
 import { getAllUsers, updateUserProfile, type UserProfile } from "@/lib/services/user-service"
 import { useAuth } from "@/components/providers/auth-provider"
 import { useBranches } from "@/hooks/use-branches"
-import { Star, Loader2, RefreshCw, Pencil, X, CheckCircle, AlertCircle, User, Phone, Briefcase, Building2, UserPlus, Mail, Lock, Plus, Trash2 } from "lucide-react"
-import type { AppRole, SkillLevel } from "@/lib/types"
+import { Star, Loader2, RefreshCw, Pencil, X, CheckCircle, AlertCircle, User, Phone, Briefcase, Building2, UserPlus, Mail, Lock, Plus, Trash2, ChevronDown, Check } from "lucide-react"
+import type { AppRole, SkillLevel, WorkZone } from "@/lib/types"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
-import { db, auth } from "@/lib/firebase"
-import { createUserWithEmailAndPassword } from "firebase/auth"
+import { db, auth, app } from "@/lib/firebase"
+import { createUserWithEmailAndPassword, getAuth, signOut } from "firebase/auth"
+import { initializeApp, deleteApp } from "firebase/app"
 
 const levelStars: Record<SkillLevel, number> = {
   Beginner: 1, Intermediate: 2, Expert: 3,
@@ -66,6 +67,8 @@ function EditEmployeePanel({
   const [saving,   setSaving]   = useState(false)
   const [error,    setError]    = useState("")
 
+  const [branchDropdownOpen, setBranchDropdownOpen] = useState(false)
+
   const usedZones = skills.map((s) => s.zone)
   const availableZones = ALL_ZONES.filter((z) => !usedZones.includes(z))
 
@@ -73,7 +76,6 @@ function EditEmployeePanel({
     if (usedZones.includes(newZone)) return
     const updated = [...skills, { zone: newZone, level: newLevel }]
     setSkills(updated)
-    // auto-advance to next available zone
     const next = ALL_ZONES.find((z) => !updated.map((s) => s.zone).includes(z))
     if (next) setNewZone(next)
   }
@@ -107,17 +109,22 @@ function EditEmployeePanel({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] cursor-pointer" onClick={onClose} />
+      
+      <div className="relative bg-card border border-border/80 rounded-2xl shadow-[0_24px_60px_rgba(0,0,0,0.15)] dark:shadow-[0_24px_70px_rgba(0,0,0,0.4)] w-full max-w-md max-h-[92vh] flex flex-col animate-in fade-in zoom-in-95 duration-200 overflow-visible"
+        onClick={(e) => e.stopPropagation()}>
+        {/* Top subtle brand gradient bar */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-indigo-500 to-violet-600 rounded-t-2xl z-10" />
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0 mt-1">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10 border-2 border-primary/20">
               <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm">{initials}</AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-bold text-sm">{member.name || "Employee"}</h3>
+              <h3 className="font-extrabold text-sm text-foreground">{member.name || "Employee"}</h3>
               <p className="text-xs text-muted-foreground">{member.email}</p>
             </div>
           </div>
@@ -125,7 +132,10 @@ function EditEmployeePanel({
             <span className={cn("text-xs font-semibold px-2.5 py-1 rounded-full border", roleColor[member.role] ?? "bg-muted text-muted-foreground")}>
               {member.role}
             </span>
-            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+            <button 
+              onClick={onClose} 
+              className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer border border-transparent hover:border-border"
+            >
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -140,7 +150,7 @@ function EditEmployeePanel({
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name"
-                className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary transition-colors" />
+                className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary transition-colors focus:shadow-sm" />
             </div>
           </div>
 
@@ -151,7 +161,7 @@ function EditEmployeePanel({
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 0100"
-                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary transition-colors" />
+                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary transition-colors focus:shadow-sm" />
               </div>
             </div>
             <div className="space-y-1">
@@ -159,23 +169,54 @@ function EditEmployeePanel({
               <div className="relative">
                 <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input value={position} onChange={(e) => setPosition(e.target.value)} placeholder="e.g. Head Chef"
-                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary transition-colors" />
+                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary transition-colors focus:shadow-sm" />
               </div>
             </div>
           </div>
 
-          {/* Branch */}
-          <div className="space-y-1">
+          {/* Branch (Custom Dropdown) */}
+          <div className="space-y-1 relative">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Branch</label>
             <div className="relative">
-              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <select value={branch} onChange={(e) => setBranch(e.target.value)}
-                className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary transition-colors">
-                <option value="">No branch assigned</option>
-                {branches.map((b) => (
-                  <option key={b.id} value={b.name}>{b.name}</option>
-                ))}
-              </select>
+              <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+              <button
+                type="button"
+                onClick={() => setBranchDropdownOpen(!branchDropdownOpen)}
+                className="flex items-center justify-between w-full bg-background border border-border hover:border-primary/50 focus:border-primary rounded-xl pl-9 pr-3 py-2 text-sm outline-none transition-all text-left font-medium shadow-sm cursor-pointer"
+              >
+                <span className="text-foreground font-semibold">{branch || "No branch assigned"}</span>
+                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${branchDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {branchDropdownOpen && (
+                <div className="absolute z-[60] mt-1 w-full bg-card border border-border rounded-xl shadow-xl max-h-40 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-100">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBranch("")
+                      setBranchDropdownOpen(false)
+                    }}
+                    className={`flex w-full items-center justify-between text-left px-4 py-2 text-xs hover:bg-muted transition-colors border-b border-border/40 last:border-b-0 cursor-pointer ${branch === "" ? 'bg-primary/5 font-bold' : ''}`}
+                  >
+                    <span>No branch assigned</span>
+                    {branch === "" && <Check className="h-4 w-4 text-primary shrink-0" />}
+                  </button>
+                  {branches.map((b) => (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => {
+                        setBranch(b.name)
+                        setBranchDropdownOpen(false)
+                      }}
+                      className={`flex w-full items-center justify-between text-left px-4 py-2 text-xs hover:bg-muted transition-colors border-b border-border/40 last:border-b-0 cursor-pointer ${branch === b.name ? 'bg-primary/5 font-bold' : ''}`}
+                    >
+                      <span>{b.name}</span>
+                      {branch === b.name && <Check className="h-4 w-4 text-primary shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -190,7 +231,7 @@ function EditEmployeePanel({
               <div className="space-y-1.5">
                 {skills.map((s) => (
                   <div key={s.zone} className="flex items-center gap-2 bg-background border border-border rounded-lg px-3 py-1.5">
-                    <span className="text-sm font-medium flex-1">{s.zone}</span>
+                    <span className="text-sm font-semibold flex-1">{s.zone}</span>
                     <select
                       value={s.level}
                       onChange={(e) => updateLevel(s.zone, e.target.value as SkillLevel)}
@@ -199,7 +240,7 @@ function EditEmployeePanel({
                       {ALL_LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
                     </select>
                     <button onClick={() => removeSkill(s.zone)}
-                      className="p-1 rounded-md hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground">
+                      className="p-1 rounded-md hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground cursor-pointer">
                       <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -221,7 +262,7 @@ function EditEmployeePanel({
                   {ALL_LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
                 </select>
                 <button onClick={addSkill}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 text-sm font-semibold transition-colors whitespace-nowrap">
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 text-sm font-semibold transition-colors whitespace-nowrap cursor-pointer">
                   <Plus className="h-3.5 w-3.5" /> Add
                 </button>
               </div>
@@ -238,7 +279,7 @@ function EditEmployeePanel({
         {/* Footer */}
         <div className="px-6 py-4 border-t border-border shrink-0">
           <button onClick={handleSave} disabled={saving}
-            className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold py-2.5 rounded-xl hover:bg-primary/90 disabled:opacity-60 transition-colors">
+            className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground font-bold py-2.5 rounded-xl hover:bg-primary/95 disabled:opacity-60 transition-all cursor-pointer shadow-md hover:shadow-lg">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
             Save Changes
           </button>
@@ -262,34 +303,75 @@ function AddEmployeeModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
   const [error, setError]       = useState("")
   const { branches }            = useBranches()
 
+  const [branchDropdownOpen, setBranchDropdownOpen] = useState(false)
+  const [roleDropdownOpen, setRoleDropdownOpen]     = useState(false)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email || !password || !name) { setError("Name, email and password are required."); return }
     setSaving(true); setError("")
+    
+    const tempAppName = `temp-app-staff-${Date.now()}`
+    let tempApp;
     try {
-      const cred = await createUserWithEmailAndPassword(auth, email, password)
+      tempApp = initializeApp(app.options, tempAppName)
+      const tempAuth = getAuth(tempApp)
+      
+      const cred = await createUserWithEmailAndPassword(tempAuth, email, password)
+      
       await setDoc(doc(db, "users", cred.user.uid), {
-        uid: cred.user.uid, email, name: name.trim(),
-        phone: phone.trim(), position: position.trim(),
-        branch: branch.trim(), role,
+        uid: cred.user.uid,
+        email,
+        name: name.trim(),
+        phone: phone.trim(),
+        position: position.trim(),
+        branch: branch.trim(),
+        role,
         createdAt: serverTimestamp(),
       })
+      
+      await signOut(tempAuth)
+      await deleteApp(tempApp)
       onAdded()
       onClose()
-    } catch (e: any) {
-      setError(e.message || "Failed to create account.")
+    } catch (err: any) {
+      if (tempApp) {
+        try { await deleteApp(tempApp) } catch (_) {}
+      }
+      setError(err.message || "Failed to create account.")
     } finally { setSaving(false) }
+  }
+
+  const toggleBranchDropdown = () => {
+    setBranchDropdownOpen(!branchDropdownOpen)
+    setRoleDropdownOpen(false)
+  }
+
+  const toggleRoleDropdown = () => {
+    setRoleDropdownOpen(!roleDropdownOpen)
+    setBranchDropdownOpen(false)
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] cursor-pointer" onClick={onClose} />
+      
+      <div className="relative bg-card border border-border/80 rounded-2xl shadow-[0_24px_60px_rgba(0,0,0,0.15)] dark:shadow-[0_24px_70px_rgba(0,0,0,0.4)] w-full max-w-md max-h-[90vh] overflow-y-visible p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}>
+        {/* Top subtle brand gradient bar */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-indigo-500 to-violet-600 rounded-t-2xl" />
+
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold flex items-center gap-2">
+          <h3 className="text-lg font-extrabold flex items-center gap-2 text-foreground">
             <UserPlus className="h-5 w-5 text-primary" /> Add Employee
           </h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted transition-colors"><X className="h-4 w-4" /></button>
+          <button 
+            onClick={onClose} 
+            className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer border border-transparent hover:border-border"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -299,7 +381,7 @@ function AddEmployeeModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input value={name} onChange={(e) => setName(e.target.value)} placeholder="John Smith" required
-                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary" />
+                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
               </div>
             </div>
             <div className="col-span-2 space-y-1">
@@ -307,7 +389,7 @@ function AddEmployeeModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="employee@example.com" required
-                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary" />
+                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
               </div>
             </div>
             <div className="col-span-2 space-y-1">
@@ -315,7 +397,7 @@ function AddEmployeeModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min. 6 characters" required
-                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary" />
+                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
               </div>
             </div>
             <div className="space-y-1">
@@ -323,7 +405,7 @@ function AddEmployeeModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 0100"
-                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary" />
+                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
               </div>
             </div>
             <div className="space-y-1">
@@ -331,31 +413,90 @@ function AddEmployeeModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
               <div className="relative">
                 <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input value={position} onChange={(e) => setPosition(e.target.value)} placeholder="Head Chef"
-                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary" />
+                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
               </div>
             </div>
-            <div className="space-y-1">
+
+            {/* Branch (Custom Dropdown) */}
+            <div className="space-y-1 relative">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Branch</label>
-              <select value={branch} onChange={(e) => setBranch(e.target.value)}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary">
-                <option value="">No branch</option>
-                {branches.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
-              </select>
+              <button
+                type="button"
+                onClick={toggleBranchDropdown}
+                className="flex items-center justify-between w-full bg-background border border-border hover:border-primary/50 focus:border-primary rounded-xl px-3 py-2 text-sm outline-none transition-all text-left font-medium shadow-sm cursor-pointer"
+              >
+                <span className="text-foreground truncate max-w-[130px] font-semibold">{branch || "No branch"}</span>
+                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${branchDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {branchDropdownOpen && (
+                <div className="absolute z-[60] mt-1 w-full bg-card border border-border rounded-xl shadow-xl max-h-40 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-100">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBranch("")
+                      setBranchDropdownOpen(false)
+                    }}
+                    className={`flex w-full items-center justify-between text-left px-4 py-2 text-xs hover:bg-muted transition-colors border-b border-border/40 last:border-b-0 cursor-pointer ${branch === "" ? 'bg-primary/5 font-bold' : ''}`}
+                  >
+                    <span>No branch</span>
+                    {branch === "" && <Check className="h-4 w-4 text-primary shrink-0" />}
+                  </button>
+                  {branches.map((b) => (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => {
+                        setBranch(b.name)
+                        setBranchDropdownOpen(false)
+                      }}
+                      className={`flex w-full items-center justify-between text-left px-4 py-2 text-xs hover:bg-muted transition-colors border-b border-border/40 last:border-b-0 cursor-pointer ${branch === b.name ? 'bg-primary/5 font-bold' : ''}`}
+                    >
+                      <span>{b.name}</span>
+                      {branch === b.name && <Check className="h-4 w-4 text-primary shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            <div className="space-y-1">
+
+            {/* Role (Custom Dropdown) */}
+            <div className="space-y-1 relative">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Role</label>
-              <select value={role} onChange={(e) => setRole(e.target.value as AppRole)}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary">
-                <option value="EMPLOYEE">EMPLOYEE</option>
-                <option value="MANAGER">MANAGER</option>
-              </select>
+              <button
+                type="button"
+                onClick={toggleRoleDropdown}
+                className="flex items-center justify-between w-full bg-background border border-border hover:border-primary/50 focus:border-primary rounded-xl px-3 py-2 text-sm outline-none transition-all text-left font-medium shadow-sm cursor-pointer"
+              >
+                <span className="text-foreground font-semibold">{role}</span>
+                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${roleDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {roleDropdownOpen && (
+                <div className="absolute z-[60] mt-1 w-full bg-card border border-border rounded-xl shadow-xl animate-in fade-in slide-in-from-top-1 duration-100">
+                  {["EMPLOYEE", "MANAGER"].map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => {
+                        setRole(r as AppRole)
+                        setRoleDropdownOpen(false)
+                      }}
+                      className={`flex w-full items-center justify-between text-left px-4 py-2 text-xs hover:bg-muted transition-colors border-b border-border/40 last:border-b-0 cursor-pointer ${role === r ? 'bg-primary/5 font-bold' : ''}`}
+                    >
+                      <span>{r}</span>
+                      {role === r && <Check className="h-4 w-4 text-primary shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 
           <button type="submit" disabled={saving}
-            className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold py-2.5 rounded-xl hover:bg-primary/90 disabled:opacity-60 transition-colors">
+            className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground font-bold py-2.5 rounded-xl hover:bg-primary/95 disabled:opacity-60 transition-all cursor-pointer shadow-md hover:shadow-lg">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
             Create Account
           </button>

@@ -1,162 +1,17 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
-import { AlertTriangle, Clock, CheckCircle, UserCheck, Sparkles, Loader2, RefreshCw, Send } from "lucide-react"
+import { AlertTriangle, Clock, CheckCircle, UserCheck, Sparkles, Loader2, RefreshCw, XCircle } from "lucide-react"
 import { suggestReplacement, type ReplacementSuggestion } from "@/lib/services/groq-service"
 import { useAuth } from "@/components/providers/auth-provider"
 import {
   getOpenShortageAlerts, respondToShortageAlert, getMyShortageResponse,
+  getAllUsers,
   type UserProfile,
 } from "@/lib/services/user-service"
-import { staffData } from "@/lib/mock-data"
-import type { Shift, ShortageAlert } from "@/lib/types"
-import { collection, addDoc, getDocs, updateDoc, doc, serverTimestamp } from "firebase/firestore"
+import type { Shift, ShortageAlert, Staff } from "@/lib/types"
+import { getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
-
-// ── Shift Swap Form ───────────────────────────────────────────────────────────
-function SwapRequestForm({ profile, onSent }: { profile: UserProfile; onSent: () => void }) {
-  const [zone, setZone]     = useState<string>(profile.skills?.[0]?.zone ?? "Kitchen")
-  const [day, setDay]       = useState("")
-  const [start, setStart]   = useState("")
-  const [end, setEnd]       = useState("")
-  const [note, setNote]     = useState("")
-  const [saving, setSaving] = useState(false)
-  const [error, setError]   = useState("")
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!day || !start || !end) { setError("Fill in all fields."); return }
-    setSaving(true); setError("")
-    try {
-      await addDoc(collection(db, "swapRequests"), {
-        requestedBy: profile.uid,
-        requestedByName: profile.name || profile.email,
-        zone, day, startTime: start, endTime: end,
-        note: note.trim(), status: "OPEN",
-        createdAt: serverTimestamp(),
-      })
-      onSent()
-    } catch (e: any) { setError(e.message) }
-    finally { setSaving(false) }
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="bg-card border border-border rounded-2xl p-5 space-y-3">
-      <h4 className="font-semibold text-sm">Request a Shift Swap</h4>
-      <div className="grid grid-cols-2 gap-2">
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Zone</label>
-          <input value={zone} onChange={(e) => setZone(e.target.value)}
-            className="w-full bg-background border border-border rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary" />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Date</label>
-          <input type="date" value={day} onChange={(e) => setDay(e.target.value)}
-            className="w-full bg-background border border-border rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary" />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">From</label>
-          <input type="time" value={start} onChange={(e) => setStart(e.target.value)}
-            className="w-full bg-background border border-border rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary" />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">To</label>
-          <input type="time" value={end} onChange={(e) => setEnd(e.target.value)}
-            className="w-full bg-background border border-border rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary" />
-        </div>
-      </div>
-      <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Reason (optional)"
-        className="w-full bg-background border border-border rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary" />
-      {error && <p className="text-xs text-destructive">{error}</p>}
-      <button type="submit" disabled={saving}
-        className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold py-2 rounded-xl text-sm disabled:opacity-60 hover:bg-primary/90 transition-colors">
-        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-        Submit Swap Request
-      </button>
-    </form>
-  )
-}
-
-// ── Swap Requests List ────────────────────────────────────────────────────────
-function SwapList({ profile }: { profile: UserProfile }) {
-  const [swaps, setSwaps]       = useState<any[]>([])
-  const [loading, setLoading]   = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const isManagerOrAdmin = profile.role === "ADMIN" || profile.role === "MANAGER"
-
-  const load = async () => {
-    setLoading(true)
-    const snap = await getDocs(collection(db, "swapRequests"))
-    setSwaps(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
-    setLoading(false)
-  }
-
-  useEffect(() => { load() }, [])
-
-  const handleRespond = async (id: string, status: "APPROVED" | "REJECTED") => {
-    await updateDoc(doc(db, "swapRequests", id), { status, respondedBy: profile.uid })
-    load()
-  }
-
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-bold">Shift Swaps</h3>
-        <div className="flex gap-2">
-          <button onClick={load}
-            className="p-1.5 rounded-lg border border-border hover:bg-muted transition-colors">
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          </button>
-          {profile.role === "EMPLOYEE" && (
-            <button onClick={() => setShowForm(!showForm)}
-              className="text-xs px-3 py-1.5 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors">
-              + Request Swap
-            </button>
-          )}
-        </div>
-      </div>
-
-      {showForm && profile.role === "EMPLOYEE" && (
-        <SwapRequestForm profile={profile} onSent={() => { setShowForm(false); load() }} />
-      )}
-
-      {loading ? (
-        <div className="flex justify-center py-6"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
-      ) : swaps.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-4">No swap requests at the moment.</p>
-      ) : (
-        swaps.map((swap) => (
-          <div key={swap.id} className="bg-card border border-border p-4 rounded-xl">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h4 className="font-semibold text-sm">{swap.requestedByName} — {swap.zone}</h4>
-                <p className="text-xs text-muted-foreground">{swap.day} · {swap.startTime}–{swap.endTime}</p>
-                {swap.note && <p className="text-xs text-muted-foreground mt-0.5">"{swap.note}"</p>}
-              </div>
-              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border shrink-0 ${
-                swap.status === "APPROVED" ? "bg-green-500/15 text-green-400 border-green-500/30"
-                : swap.status === "REJECTED" ? "bg-red-500/15 text-red-400 border-red-500/30"
-                : "bg-yellow-500/15 text-yellow-400 border-yellow-500/30"
-              }`}>{swap.status}</span>
-            </div>
-            {isManagerOrAdmin && swap.status === "OPEN" && (
-              <div className="flex gap-2 mt-3">
-                <button onClick={() => handleRespond(swap.id, "APPROVED")}
-                  className="flex-1 text-xs font-semibold py-1.5 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors">
-                  Approve
-                </button>
-                <button onClick={() => handleRespond(swap.id, "REJECTED")}
-                  className="flex-1 text-xs font-semibold py-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors">
-                  Reject
-                </button>
-              </div>
-            )}
-          </div>
-        ))
-      )}
-    </div>
-  )
-}
 
 // ── Emergency Vacancy Card ────────────────────────────────────────────────────
 function EmergencyCard({ alert, profile, onAccepted }: {
@@ -167,20 +22,69 @@ function EmergencyCard({ alert, profile, onAccepted }: {
   const [suggestion, setSuggestion]               = useState<ReplacementSuggestion | null>(null)
   const [loadingSuggestion, setLoadingSuggestion] = useState(false)
   const [suggestionError, setSuggestionError]     = useState("")
+  const [suggestionStaff, setSuggestionStaff]     = useState<any[]>([])
+  const [error, setError]                         = useState("")
   const isManagerOrAdmin = profile.role === "ADMIN" || profile.role === "MANAGER"
 
   useEffect(() => {
     getMyShortageResponse(alert.id, profile.uid).then((r) => {
       if (r) setMyResponse(r.status)
+    }).catch((err) => {
+      console.error("Error loading my shortage response:", err)
     })
   }, [alert.id, profile.uid])
 
   const handleAccept = async () => {
-    setLoading(true)
+    setLoading(true); setError("")
     try {
       await respondToShortageAlert(alert.id, profile.uid, profile.name || profile.email, "ACCEPTED")
       setMyResponse("ACCEPTED")
       onAccepted()
+    } catch (err: any) {
+      setError(err.message || "Failed to accept shift.")
+    } finally { setLoading(false) }
+  }
+
+  const handleCancelAlert = async () => {
+    const ok = window.confirm("Are you sure you want to cancel this emergency vacancy alert?")
+    if (!ok) return
+    setLoading(true); setError("")
+    try {
+      await deleteDoc(doc(db, "shortageAlerts", alert.id))
+      onAccepted() // Refresh list
+    } catch (err: any) {
+      setError(err.message || "Failed to cancel emergency alert.")
+    } finally { setLoading(false) }
+  }
+
+  const handleRetract = async () => {
+    const ok = window.confirm("Are you sure you want to retract your coverage for this emergency shift? It will be re-opened on the vacancy board.")
+    if (!ok) return
+    setLoading(true); setError("")
+    try {
+      const { getDocs, query, collection, where, deleteDoc } = await import("firebase/firestore")
+      
+      // 1. Re-open shortage alert
+      await updateDoc(doc(db, "shortageAlerts", alert.id), {
+        status: "OPEN",
+        assignedTo: null,
+        assignedToName: null,
+        assignedAt: null,
+      })
+      
+      // 2. Delete the shortage response matching this user and alert
+      const snap = await getDocs(
+        query(
+          collection(db, "shortageResponses"),
+          where("alertId", "==", alert.id),
+          where("employeeUid", "==", profile.uid)
+        )
+      )
+      await Promise.all(snap.docs.map((d) => deleteDoc(doc(db, "shortageResponses", d.id))))
+      
+      onAccepted() // Refresh board
+    } catch (err: any) {
+      setError(err.message || "Failed to retract coverage.")
     } finally { setLoading(false) }
   }
 
@@ -193,16 +97,64 @@ function EmergencyCard({ alert, profile, onAccepted }: {
         day: alert.date, startTime: alert.startTime, endTime: alert.endTime,
         isEmergency: true, status: "vacant",
       }
-      const available = staffData.filter((s) => s.availability === "available")
-      const result = await suggestReplacement(vacantShift, available as any)
+      
+      const allUsers = await getAllUsers()
+      const available: Staff[] = allUsers.map((u) => ({
+        id: u.uid,
+        name: u.name || u.email,
+        role: u.role,
+        branchId: u.branch || "",
+        skills: (u.skills ?? []).map((s) => s.zone),
+        availability: "available",
+        avatar: "",
+      }))
+      
+      setSuggestionStaff(available)
+      const result = await suggestReplacement(vacantShift, available)
       setSuggestion(result)
-    } catch { setSuggestionError("Could not get AI suggestion.") }
-    finally { setLoadingSuggestion(false) }
+    } catch (err: any) {
+      setSuggestionError(err.message || "Could not get AI suggestion.")
+    } finally { setLoadingSuggestion(false) }
   }
 
   const recommendedStaff = suggestion
-    ? staffData.find((s) => s.id === suggestion.recommendedStaffId)
+    ? suggestionStaff.find((s) => s.id === suggestion.recommendedStaffId)
     : null
+
+  const isClaimedByMe = alert.status === "FILLED" && alert.assignedTo === profile.uid
+
+  if (isClaimedByMe) {
+    return (
+      <div className="border border-green-500/30 bg-green-500/5 rounded-2xl p-5 space-y-4 shadow-sm">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-green-500/10 text-green-500 flex items-center justify-center shrink-0">
+              <CheckCircle className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-base text-foreground">You are covering this vacancy</h3>
+              <p className="text-xs text-muted-foreground">{alert.branchName} · {alert.reason}</p>
+            </div>
+          </div>
+          <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full border bg-green-500/15 text-green-400 border-green-500/30 shrink-0">CLAIMED</span>
+        </div>
+
+        <div className="flex flex-wrap gap-4 text-xs text-muted-foreground pt-1">
+          <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{alert.startTime}–{alert.endTime}</span>
+          <span className="font-medium text-foreground">{alert.zone}</span>
+          <span>{alert.date}</span>
+        </div>
+
+        {error && <p className="text-xs text-destructive">{error}</p>}
+
+        <button onClick={handleRetract} disabled={loading}
+          className="w-full flex items-center justify-center gap-2 bg-destructive/10 border border-destructive/20 hover:bg-destructive hover:text-white font-bold py-2.5 rounded-xl disabled:opacity-60 transition-all cursor-pointer">
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+          RETRACT COVERAGE (Cancel)
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className={`border rounded-2xl p-5 space-y-4 ${
@@ -213,7 +165,7 @@ function EmergencyCard({ alert, profile, onAccepted }: {
           <AlertTriangle className={`h-8 w-8 shrink-0 ${alert.priority === "HIGH" ? "text-red-500" : "text-orange-500"}`} />
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-bold text-base">Emergency Vacancy</h3>
+              <h3 className="font-bold text-base text-foreground">Emergency Vacancy</h3>
               {alert.priority === "HIGH" && (
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500 text-white">🚨 HIGH</span>
               )}
@@ -233,8 +185,21 @@ function EmergencyCard({ alert, profile, onAccepted }: {
         <span>{alert.date}</span>
       </div>
 
+      {error && <p className="text-xs text-destructive">{error}</p>}
+
       {profile.role === "EMPLOYEE" && alert.status === "OPEN" && (
-        myResponse ? (
+        alert.createdBy === profile.uid ? (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground bg-muted/30 border border-border px-3 py-2 rounded-xl">
+              You reported this emergency vacancy. If this was a mistake or you are now available, you can cancel it below.
+            </p>
+            <button onClick={handleCancelAlert} disabled={loading}
+              className="w-full flex items-center justify-center gap-2 bg-destructive/10 border border-destructive/20 hover:bg-destructive hover:text-white font-bold py-2.5 rounded-xl disabled:opacity-60 transition-all cursor-pointer">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+              CANCEL EMERGENCY VACANCY
+            </button>
+          </div>
+        ) : myResponse ? (
           <div className={`flex items-center gap-2 text-sm font-semibold px-3 py-2 rounded-xl ${
             myResponse === "ACCEPTED" ? "bg-green-500/10 text-green-500" : "bg-muted text-muted-foreground"
           }`}>
@@ -243,7 +208,7 @@ function EmergencyCard({ alert, profile, onAccepted }: {
           </div>
         ) : (
           <button onClick={handleAccept} disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 rounded-xl disabled:opacity-60 transition-colors">
+            className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 rounded-xl disabled:opacity-60 transition-colors cursor-pointer">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserCheck className="h-4 w-4" />}
             ACCEPT SHIFT
           </button>
@@ -252,11 +217,18 @@ function EmergencyCard({ alert, profile, onAccepted }: {
 
       {isManagerOrAdmin && (
         <div className="border-t border-border/50 pt-3 space-y-3">
-          <button onClick={handleAISuggest} disabled={loadingSuggestion}
-            className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 disabled:opacity-60 transition-colors">
-            {loadingSuggestion ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Ask Groq for best replacement
-          </button>
+          <div className="flex gap-3">
+            <button onClick={handleAISuggest} disabled={loadingSuggestion}
+              className="flex-1 flex items-center justify-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 disabled:opacity-60 transition-colors cursor-pointer bg-primary/10 border border-primary/20 py-2 rounded-xl">
+              {loadingSuggestion ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              AI Replacement
+            </button>
+            <button onClick={handleCancelAlert} disabled={loading}
+              className="flex-1 flex items-center justify-center gap-2 text-sm font-semibold text-destructive hover:bg-destructive hover:text-white disabled:opacity-60 transition-all cursor-pointer bg-destructive/10 border border-destructive/20 py-2 rounded-xl">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+              Cancel Alert
+            </button>
+          </div>
           {suggestionError && <p className="text-xs text-destructive">{suggestionError}</p>}
           {suggestion && (
             <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 space-y-2">
@@ -267,7 +239,7 @@ function EmergencyCard({ alert, profile, onAccepted }: {
                 <div className="pt-1 space-y-1">
                   <p className="text-xs text-muted-foreground font-semibold">Alternatives:</p>
                   {suggestion.alternatives.map((alt) => {
-                    const s = staffData.find((x) => x.id === alt.staffId)
+                    const s = suggestionStaff.find((x) => x.id === alt.staffId)
                     return (
                       <p key={alt.staffId} className="text-xs text-muted-foreground">
                         • {s?.name ?? alt.staffId} — {alt.reason}
@@ -287,50 +259,97 @@ function EmergencyCard({ alert, profile, onAccepted }: {
 // ── Main Component ────────────────────────────────────────────────────────────
 export function EmergencyBoard() {
   const { profile } = useAuth()
-  const [alerts, setAlerts]   = useState<ShortageAlert[]>([])
-  const [loading, setLoading] = useState(true)
+  const [alerts, setAlerts]               = useState<ShortageAlert[]>([])
+  const [claimedAlerts, setClaimedAlerts] = useState<ShortageAlert[]>([])
+  const [loading, setLoading]             = useState(true)
+  const [error, setError]                 = useState("")
 
   const load = async () => {
-    setLoading(true)
-    try { const data = await getOpenShortageAlerts(); setAlerts(data) }
-    finally { setLoading(false) }
+    setLoading(true); setError("")
+    try {
+      const openData = await getOpenShortageAlerts()
+      setAlerts(openData)
+
+      if (profile?.role === "EMPLOYEE") {
+        const { getDocs, query, collection, where } = await import("firebase/firestore")
+        const { db } = await import("@/lib/firebase")
+        const snap = await getDocs(
+          query(
+            collection(db, "shortageAlerts"),
+            where("status", "==", "FILLED"),
+            where("assignedTo", "==", profile.uid)
+          )
+        )
+        const claimed = snap.docs.map((d) => ({ id: d.id, ...d.data() } as ShortageAlert))
+        setClaimedAlerts(claimed)
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to load shortage alerts.")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    if (profile) load()
+  }, [profile])
 
   if (!profile) return null
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Emergency Board</h2>
+          <h2 className="text-2xl font-bold text-foreground">Emergency Board</h2>
           <p className="text-sm text-muted-foreground">Open vacancies — first come first serve</p>
         </div>
         <button onClick={load} disabled={loading}
-          className="p-2 rounded-xl border border-border hover:bg-muted transition-colors disabled:opacity-50">
+          className="p-2 rounded-xl border border-border hover:bg-muted transition-colors disabled:opacity-50 cursor-pointer">
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
         </button>
       </div>
 
+      {error && <p className="text-sm text-destructive">{error}</p>}
+
       {loading ? (
         <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-      ) : alerts.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          <CheckCircle className="h-10 w-10 mx-auto mb-3 opacity-30" />
-          No open emergency vacancies right now.
-        </div>
       ) : (
-        <div className="space-y-4">
-          {alerts.map((alert) => (
-            <EmergencyCard key={alert.id} alert={alert} profile={profile} onAccepted={load} />
-          ))}
+        <div className="space-y-6">
+          {/* Section: Your Claimed Emergency Shifts */}
+          {profile.role === "EMPLOYEE" && claimedAlerts.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500" /> Your Claimed Vacancies
+              </h3>
+              <div className="space-y-4">
+                {claimedAlerts.map((alert) => (
+                  <EmergencyCard key={alert.id} alert={alert} profile={profile} onAccepted={load} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Section: Available Open Vacancies */}
+          <div className="space-y-3">
+            {profile.role === "EMPLOYEE" && claimedAlerts.length > 0 && (
+              <h3 className="text-lg font-bold text-foreground">Open Vacancies</h3>
+            )}
+            {alerts.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground border border-dashed border-border rounded-2xl bg-muted/10">
+                <CheckCircle className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                No open emergency vacancies right now.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {alerts.map((alert) => (
+                  <EmergencyCard key={alert.id} alert={alert} profile={profile} onAccepted={load} />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
-
-      <div className="border-t border-border pt-6">
-        <SwapList profile={profile} />
-      </div>
     </div>
   )
 }

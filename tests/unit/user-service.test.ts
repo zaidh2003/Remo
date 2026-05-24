@@ -3,7 +3,7 @@
  * Tests the reportSickLeave function
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { reportSickLeave } from '@/lib/services/user-service'
 import type { UserProfile } from '@/lib/services/user-service'
 import type { SickLeaveType } from '@/lib/types'
@@ -39,6 +39,12 @@ vi.mock('@/lib/services/data-service', () => ({
 describe('user-service: reportSickLeave', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-05-24T08:00:00'))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('should calculate current time automatically', async () => {
@@ -74,7 +80,7 @@ describe('user-service: reportSickLeave', () => {
     
     // Verify addDoc was called with current time (not the provided startTime)
     expect(addDoc).toHaveBeenCalled()
-    const alertData = vi.mocked(addDoc).mock.calls[0][1]
+    const alertData = vi.mocked(addDoc).mock.calls[0][1] as any
     
     // The startTime should be current time, not '09:00'
     expect(alertData.startTime).not.toBe('09:00')
@@ -186,7 +192,7 @@ describe('user-service: reportSickLeave', () => {
     
     // Verify alert was created with HIGH priority
     expect(addDoc).toHaveBeenCalled()
-    const alertData = vi.mocked(addDoc).mock.calls[0][1]
+    const alertData = vi.mocked(addDoc).mock.calls[0][1] as any
     
     expect(alertData.priority).toBe('HIGH')
     expect(alertData.sickLeaveType).toBe('SUDDEN_ILLNESS')
@@ -221,7 +227,7 @@ describe('user-service: reportSickLeave', () => {
     
     // Verify alert was created with NORMAL priority
     expect(addDoc).toHaveBeenCalled()
-    const alertData = vi.mocked(addDoc).mock.calls[0][1]
+    const alertData = vi.mocked(addDoc).mock.calls[0][1] as any
     
     expect(alertData.priority).toBe('NORMAL')
     expect(alertData.sickLeaveType).toBe('OTHER')

@@ -44,7 +44,7 @@ test.describe('Manager Golden Path Workflow', () => {
     // 5. Scheduler & Shortage Alerts
     await page.getByRole('button', { name: 'Scheduler' }).click();
     // Wait for the grid to load
-    await expect(page.getByText('Staff')).first().toBeVisible();
+    await expect(page.getByText('Staff').first()).toBeVisible();
 
     // Verify Shortage Alerts panel
     await expect(page.getByText('Shortage Alerts')).toBeVisible();

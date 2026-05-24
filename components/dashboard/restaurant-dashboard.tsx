@@ -18,16 +18,27 @@ import { DemoDataSeeder } from "@/components/dashboard/demo-data-seeder"
 import type { UserProfile } from "@/lib/services/user-service"
 import Image from "next/image"
 import { Bell, LogOut } from "lucide-react"
-import { ProfilePanel } from "./profile-panel"
+import { ProfilePanel, SickLeaveModal } from "./profile-panel"
 
 export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile | null }) {
   const [activeTab, setActiveTab] = useState("dashboard")
   const [showProfile, setShowProfile] = useState(false)
+  const [showSickLeave, setShowSickLeave] = useState(false)
 
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
-        return <DashboardOverview onNavigate={setActiveTab} />
+        return (
+          <DashboardOverview
+            onNavigate={(tab) => {
+              if (tab === "sick-leave") {
+                setShowSickLeave(true)
+              } else {
+                setActiveTab(tab)
+              }
+            }}
+          />
+        )
       case "scheduler":
         return <WeeklyScheduler />
       case "tasks":
@@ -164,6 +175,9 @@ export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile 
 
       {/* Profile Panel */}
       {showProfile && <ProfilePanel onClose={() => setShowProfile(false)} />}
+
+      {/* Sick Leave Modal */}
+      {showSickLeave && <SickLeaveModal onClose={() => setShowSickLeave(false)} />}
     </div>
   )
 }

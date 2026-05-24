@@ -28,11 +28,7 @@ function getAdminApp(): App {
         });
       } else {
         // Development: Use application default credentials or project ID
-        const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-        
-        if (!projectId) {
-          throw new Error("FIREBASE_ADMIN_PROJECT_ID or NEXT_PUBLIC_FIREBASE_PROJECT_ID is required for Firebase Admin");
-        }
+        const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "remo-3dedf";
         
         app = initializeApp({
           projectId,

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import {
   User, Mail, Phone, Briefcase, Shield, LogOut, X, Check,
-  Loader2, Pencil, ChefHat, Star, Thermometer, AlertTriangle,
+  Loader2, Pencil, ChefHat, Star, Thermometer, AlertTriangle, ChevronDown
 } from "lucide-react"
 import { useAuth } from "@/components/providers/auth-provider"
 import { updateUserProfile, reportSickLeave } from "@/lib/services/user-service"
@@ -30,7 +30,7 @@ const roleBadge: Record<string, string> = {
 const inputCls = "w-full bg-background border border-border rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary transition-colors"
 
 // ── Sick Leave Modal ──────────────────────────────────────────────────────────
-function SickLeaveModal({ onClose }: { onClose: () => void }) {
+export function SickLeaveModal({ onClose }: { onClose: () => void }) {
   const { profile } = useAuth()
   const [type, setType]       = useState<SickLeaveType>("SUDDEN_ILLNESS")
   const [zone, setZone]       = useState<WorkZone>("Kitchen")
@@ -41,6 +41,7 @@ function SickLeaveModal({ onClose }: { onClose: () => void }) {
   const [saving, setSaving]   = useState(false)
   const [done, setDone]       = useState(false)
   const [error, setError]     = useState("")
+  const [zoneDropdownOpen, setZoneDropdownOpen] = useState(false)
 
   // Pre-fill zones from employee skills
   const myZones = profile?.skills?.map((s) => s.zone) ?? profile?.workerTypes ?? ALL_ZONES
@@ -100,14 +101,25 @@ function SickLeaveModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200"
+      {/* Transparent click-catcher to avoid double overlay darkness */}
+      <div className="absolute inset-0 cursor-pointer" onClick={onClose} />
+      
+      <div className="relative bg-card border border-border/80 rounded-2xl shadow-[0_24px_60px_rgba(0,0,0,0.15)] dark:shadow-[0_24px_70px_rgba(0,0,0,0.4)] w-full max-w-sm max-h-[90vh] overflow-y-visible p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}>
+        {/* Top subtle brand error gradient bar */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 rounded-t-2xl" />
+
+        {/* Modal Header */}
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-lg flex items-center gap-2">
+          <h3 className="font-extrabold text-lg flex items-center gap-2">
             <Thermometer className="h-5 w-5 text-red-500" /> Report Sick Leave
           </h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted"><X className="h-4 w-4" /></button>
+          <button 
+            onClick={onClose} 
+            className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer border border-transparent hover:border-border"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
         {done ? (
@@ -115,13 +127,18 @@ function SickLeaveModal({ onClose }: { onClose: () => void }) {
             <div className="h-14 w-14 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center mx-auto">
               <Check className="h-7 w-7" />
             </div>
-            <p className="font-semibold">Sick leave reported.</p>
+            <p className="font-semibold text-foreground">Sick leave reported.</p>
             <p className="text-sm text-muted-foreground">
               {type === "SUDDEN_ILLNESS"
                 ? "🚨 High priority alert sent to all branches."
                 : "Alert sent to your manager."}
             </p>
-            <button onClick={onClose} className="w-full py-2 rounded-xl bg-primary text-primary-foreground font-semibold text-sm">Close</button>
+            <button 
+              onClick={onClose} 
+              className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-all cursor-pointer"
+            >
+              Close
+            </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -132,25 +149,25 @@ function SickLeaveModal({ onClose }: { onClose: () => void }) {
                 <button
                   type="button"
                   onClick={() => setType("SUDDEN_ILLNESS")}
-                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 text-sm font-semibold transition-all cursor-pointer ${
                     type === "SUDDEN_ILLNESS"
                       ? "border-red-500 bg-red-500/10 text-red-500"
-                      : "border-border hover:border-red-500/50 text-muted-foreground"
+                      : "border-border hover:border-red-500/55 text-muted-foreground bg-background"
                   }`}
                 >
                   <AlertTriangle className="h-5 w-5" />
                   Sudden Illness
                   {type === "SUDDEN_ILLNESS" && (
-                    <span className="text-[10px] bg-red-500 text-white px-2 py-0.5 rounded-full">HIGH PRIORITY</span>
+                    <span className="text-[9px] font-black bg-red-500 text-white px-2 py-0.5 rounded-full tracking-wider mt-0.5">HIGH PRIORITY</span>
                   )}
                 </button>
                 <button
                   type="button"
                   onClick={() => setType("OTHER")}
-                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 text-sm font-semibold transition-all cursor-pointer ${
                     type === "OTHER"
                       ? "border-primary bg-primary/10 text-primary"
-                      : "border-border hover:border-primary/50 text-muted-foreground"
+                      : "border-border hover:border-primary/55 text-muted-foreground bg-background"
                   }`}
                 >
                   <Thermometer className="h-5 w-5" />
@@ -159,13 +176,37 @@ function SickLeaveModal({ onClose }: { onClose: () => void }) {
               </div>
             </div>
 
-            {/* Zone */}
-            <div className="space-y-1.5">
+            {/* Zone (Custom Dropdown Selection) */}
+            <div className="space-y-1.5 relative">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Your Zone</label>
-              <select value={zone} onChange={(e) => setZone(e.target.value as WorkZone)}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary">
-                {myZones.map((z) => <option key={z} value={z}>{z}</option>)}
-              </select>
+              
+              <button
+                type="button"
+                onClick={() => setZoneDropdownOpen(!zoneDropdownOpen)}
+                className="flex items-center justify-between w-full bg-background border border-border hover:border-primary/50 focus:border-primary rounded-xl px-4 py-3 text-sm outline-none transition-all text-left font-medium shadow-sm hover:shadow-md cursor-pointer"
+              >
+                <span className="text-foreground font-semibold">{zone}</span>
+                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${zoneDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {zoneDropdownOpen && (
+                <div className="absolute z-[70] mt-1 w-full bg-card border border-border rounded-xl shadow-xl max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-100">
+                  {myZones.map((z) => (
+                    <button
+                      key={z}
+                      type="button"
+                      onClick={() => {
+                        setZone(z)
+                        setZoneDropdownOpen(false)
+                      }}
+                      className={`flex w-full items-center justify-between text-left px-4 py-2.5 text-sm hover:bg-muted transition-colors border-b border-border/40 last:border-b-0 cursor-pointer ${zone === z ? 'bg-primary/5 hover:bg-primary/10 font-bold' : ''}`}
+                    >
+                      <span className="text-foreground">{z}</span>
+                      {zone === z && <Check className="h-4 w-4 text-primary shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Date + times */}
@@ -173,17 +214,17 @@ function SickLeaveModal({ onClose }: { onClose: () => void }) {
               <div className="col-span-3 space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Date</label>
                 <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
-                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary" />
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
               </div>
               <div className="col-span-1 space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">From</label>
                 <input type="time" value={start} onChange={(e) => setStart(e.target.value)}
-                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary" />
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
               </div>
               <div className="col-span-1 space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">To</label>
                 <input type="time" value={end} onChange={(e) => setEnd(e.target.value)}
-                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary" />
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
               </div>
             </div>
 
@@ -192,15 +233,15 @@ function SickLeaveModal({ onClose }: { onClose: () => void }) {
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Note (optional)</label>
                 <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Brief reason..."
-                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary" />
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
               </div>
             )}
 
             {error && <p className="text-sm text-destructive">{error}</p>}
 
             <button type="submit" disabled={saving}
-              className={`w-full flex items-center justify-center gap-2 font-bold py-2.5 rounded-xl text-white transition-colors disabled:opacity-60 ${
-                type === "SUDDEN_ILLNESS" ? "bg-red-500 hover:bg-red-600" : "bg-primary hover:bg-primary/90"
+              className={`w-full flex items-center justify-center gap-2 font-bold py-2.5 rounded-xl text-white transition-all cursor-pointer shadow-md disabled:opacity-60 ${
+                type === "SUDDEN_ILLNESS" ? "bg-red-500 hover:bg-red-600 hover:shadow-lg" : "bg-primary hover:bg-primary/90 hover:shadow-lg"
               }`}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Thermometer className="h-4 w-4" />}
               {type === "SUDDEN_ILLNESS" ? "Send High Priority Alert" : "Submit Sick Leave"}
@@ -363,7 +404,7 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-start justify-end p-4 pt-20">
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={onClose} />
         <div ref={panelRef}
           className="relative w-full max-w-sm bg-card border border-border rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200 max-h-[90vh] overflow-y-auto">
 

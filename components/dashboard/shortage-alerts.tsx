@@ -208,7 +208,6 @@ function CreateAlertForm({ onCreated }: { onCreated: () => void }) {
   )
 }
 
-// ── Alert Card (employee view) ────────────────────────────────────────────────
 function AlertCard({ alert, currentUser, onRespond }: {
   alert: ShortageAlert
   currentUser: UserProfile
@@ -216,20 +215,25 @@ function AlertCard({ alert, currentUser, onRespond }: {
 }) {
   const [myResponse, setMyResponse] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
   const isAiPick = alert.aiSuggestedUid === currentUser.uid
 
   useEffect(() => {
     getMyShortageResponse(alert.id, currentUser.uid).then((r) => {
       if (r) setMyResponse(r.status)
+    }).catch((err) => {
+      console.error("Error loading shortage response:", err)
     })
   }, [alert.id, currentUser.uid])
 
   const respond = async (status: "ACCEPTED" | "DENIED") => {
-    setLoading(true)
+    setLoading(true); setError("")
     try {
       await respondToShortageAlert(alert.id, currentUser.uid, currentUser.name || currentUser.email, status)
       setMyResponse(status)
       onRespond()
+    } catch (err: any) {
+      setError(err.message || "Failed to submit response.")
     } finally {
       setLoading(false)
     }
@@ -273,6 +277,8 @@ function AlertCard({ alert, currentUser, onRespond }: {
         <span className="flex items-center gap-1"><User className="h-3.5 w-3.5" />by {alert.createdByName}</span>
       </div>
 
+      {error && <p className="text-xs text-destructive">{error}</p>}
+
       {/* Employee response buttons */}
       {currentUser.role === "EMPLOYEE" && alert.status === "OPEN" && (
         myResponse ? (
@@ -312,21 +318,24 @@ export function ShortageAlerts() {
   const [alerts, setAlerts] = useState<ShortageAlert[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [error, setError] = useState("")
 
   const isManagerOrAdmin = profile?.role === "ADMIN" || profile?.role === "MANAGER"
 
   const load = async () => {
     if (!profile) return
-    setLoading(true)
+    setLoading(true); setError("")
     try {
       const data = await getAllShortageAlerts(profile)
       setAlerts(data)
+    } catch (err: any) {
+      setError(err.message || "Failed to load shortage alerts.")
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [profile?.uid, profile?.branch])
 
   if (!profile) return null
 
@@ -359,6 +368,8 @@ export function ShortageAlerts() {
       {showForm && isManagerOrAdmin && (
         <CreateAlertForm onCreated={() => { setShowForm(false); load() }} />
       )}
+
+      {error && <p className="text-sm text-destructive">{error}</p>}
 
       {loading ? (
         <div className="flex items-center justify-center py-20">

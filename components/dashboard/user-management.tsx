@@ -1,15 +1,16 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Users, Shield, Loader2, CheckCircle, AlertCircle, RefreshCw, UserPlus, X, Mail, User, Phone, Briefcase, Pencil } from "lucide-react"
+import { Users, Shield, Loader2, CheckCircle, AlertCircle, RefreshCw, UserPlus, X, Mail, User, Phone, Briefcase, Pencil, ChevronDown, Check } from "lucide-react"
 import { getAllUsers, updateUserRole, updateUserProfile, type UserProfile } from "@/lib/services/user-service"
 import { useAuth } from "@/components/providers/auth-provider"
 import { useBranches } from "@/hooks/use-branches"
 import type { AppRole } from "@/lib/types"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
-import { db } from "@/lib/firebase"
-import { createUserWithEmailAndPassword } from "firebase/auth"
-import { auth } from "@/lib/firebase"
+import { db, auth, app } from "@/lib/firebase"
+import { createUserWithEmailAndPassword, getAuth, signOut } from "firebase/auth"
+import { initializeApp, deleteApp } from "firebase/app"
+import { DemoDataSeeder } from "@/components/dashboard/demo-data-seeder"
 
 const ROLES: AppRole[] = ["ADMIN", "MANAGER", "EMPLOYEE"]
 
@@ -32,6 +33,9 @@ function AddEmployeeModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
   const [error, setError]       = useState("")
   const { branches }            = useBranches()
 
+  const [branchDropdownOpen, setBranchDropdownOpen] = useState(false)
+  const [roleDropdownOpen, setRoleDropdownOpen]     = useState(false)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim() || !email.trim() || !password.trim()) {
@@ -44,10 +48,15 @@ function AddEmployeeModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
     }
     setSaving(true)
     setError("")
+    
+    const tempAppName = `temp-app-users-${Date.now()}`
+    let tempApp;
     try {
-      // Create Firebase Auth account
-      const cred = await createUserWithEmailAndPassword(auth, email.trim(), password)
-      // Write Firestore profile
+      tempApp = initializeApp(app.options, tempAppName)
+      const tempAuth = getAuth(tempApp)
+      
+      const cred = await createUserWithEmailAndPassword(tempAuth, email.trim(), password)
+      
       await setDoc(doc(db, "users", cred.user.uid), {
         uid: cred.user.uid,
         email: email.trim(),
@@ -59,24 +68,49 @@ function AddEmployeeModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
         workerTypes: [],
         createdAt: serverTimestamp(),
       })
+      
+      await signOut(tempAuth)
+      await deleteApp(tempApp)
       onAdded()
       onClose()
-    } catch (e: any) {
-      setError(e.message || "Failed to create employee.")
+    } catch (err: any) {
+      if (tempApp) {
+        try { await deleteApp(tempApp) } catch (_) {}
+      }
+      setError(err.message || "Failed to create employee.")
     } finally {
       setSaving(false)
     }
   }
 
+  const toggleBranchDropdown = () => {
+    setBranchDropdownOpen(!branchDropdownOpen)
+    setRoleDropdownOpen(false)
+  }
+
+  const toggleRoleDropdown = () => {
+    setRoleDropdownOpen(!roleDropdownOpen)
+    setBranchDropdownOpen(false)
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+      {/* Transparent overlay for click-away catching */}
+      <div className="absolute inset-0 cursor-pointer bg-black/60 backdrop-blur-[2px]" onClick={onClose} />
+      
+      <div className="relative bg-card border border-border/80 rounded-2xl shadow-[0_24px_60px_rgba(0,0,0,0.15)] dark:shadow-[0_24px_70px_rgba(0,0,0,0.4)] w-full max-w-md max-h-[92vh] overflow-y-visible p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}>
+        {/* Top subtle brand gradient bar */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-indigo-500 to-violet-600 rounded-t-2xl" />
+
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold flex items-center gap-2">
+          <h3 className="text-lg font-extrabold flex items-center gap-2 text-foreground">
             <UserPlus className="h-5 w-5 text-primary" /> Add Employee
           </h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+          <button 
+            onClick={onClose} 
+            className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer border border-transparent hover:border-border"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -88,7 +122,7 @@ function AddEmployeeModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input value={name} onChange={(e) => setName(e.target.value)} placeholder="John Smith"
-                className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary" />
+                className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
             </div>
           </div>
 
@@ -98,7 +132,7 @@ function AddEmployeeModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="john@restaurant.com"
-                className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary" />
+                className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
             </div>
           </div>
 
@@ -106,7 +140,7 @@ function AddEmployeeModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Temporary Password *</label>
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min 6 characters"
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary" />
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -116,7 +150,7 @@ function AddEmployeeModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 0100"
-                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary" />
+                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
               </div>
             </div>
 
@@ -126,36 +160,90 @@ function AddEmployeeModal({ onClose, onAdded }: { onClose: () => void; onAdded: 
               <div className="relative">
                 <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input value={position} onChange={(e) => setPosition(e.target.value)} placeholder="Head Chef"
-                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary" />
+                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
               </div>
             </div>
 
-            {/* Branch */}
-            <div className="space-y-1.5">
+            {/* Branch (Custom Dropdown) */}
+            <div className="space-y-1.5 relative">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Branch</label>
-              <select value={branch} onChange={(e) => setBranch(e.target.value)}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary">
-                <option value="">No branch assigned</option>
-                {branches.map((b) => (
-                  <option key={b.id} value={b.name}>{b.name}</option>
-                ))}
-              </select>
+              <button
+                type="button"
+                onClick={toggleBranchDropdown}
+                className="flex items-center justify-between w-full bg-background border border-border hover:border-primary/50 focus:border-primary rounded-xl px-3 py-2 text-sm outline-none transition-all text-left font-medium shadow-sm cursor-pointer"
+              >
+                <span className="text-foreground truncate max-w-[130px] font-semibold">{branch || "No branch assigned"}</span>
+                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${branchDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {branchDropdownOpen && (
+                <div className="absolute z-[60] mt-1 w-full bg-card border border-border rounded-xl shadow-xl max-h-40 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-100">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBranch("")
+                      setBranchDropdownOpen(false)
+                    }}
+                    className={`flex w-full items-center justify-between text-left px-4 py-2 text-xs hover:bg-muted transition-colors border-b border-border/40 last:border-b-0 cursor-pointer ${branch === "" ? 'bg-primary/5 font-bold' : ''}`}
+                  >
+                    <span>No branch assigned</span>
+                    {branch === "" && <Check className="h-4 w-4 text-primary shrink-0" />}
+                  </button>
+                  {branches.map((b) => (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => {
+                        setBranch(b.name)
+                        setBranchDropdownOpen(false)
+                      }}
+                      className={`flex w-full items-center justify-between text-left px-4 py-2 text-xs hover:bg-muted transition-colors border-b border-border/40 last:border-b-0 cursor-pointer ${branch === b.name ? 'bg-primary/5 font-bold' : ''}`}
+                    >
+                      <span>{b.name}</span>
+                      {branch === b.name && <Check className="h-4 w-4 text-primary shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Role */}
-            <div className="space-y-1.5">
+            {/* Role (Custom Dropdown) */}
+            <div className="space-y-1.5 relative">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Role</label>
-              <select value={role} onChange={(e) => setRole(e.target.value as AppRole)}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary">
-                {["EMPLOYEE", "MANAGER", "ADMIN"].map((r) => <option key={r} value={r}>{r}</option>)}
-              </select>
+              <button
+                type="button"
+                onClick={toggleRoleDropdown}
+                className="flex items-center justify-between w-full bg-background border border-border hover:border-primary/50 focus:border-primary rounded-xl px-3 py-2 text-sm outline-none transition-all text-left font-medium shadow-sm cursor-pointer"
+              >
+                <span className="text-foreground font-semibold">{role}</span>
+                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${roleDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {roleDropdownOpen && (
+                <div className="absolute z-[60] mt-1 w-full bg-card border border-border rounded-xl shadow-xl animate-in fade-in slide-in-from-top-1 duration-100">
+                  {["EMPLOYEE", "MANAGER", "ADMIN"].map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => {
+                        setRole(r as AppRole)
+                        setRoleDropdownOpen(false)
+                      }}
+                      className={`flex w-full items-center justify-between text-left px-4 py-2 text-xs hover:bg-muted transition-colors border-b border-border/40 last:border-b-0 cursor-pointer ${role === r ? 'bg-primary/5 font-bold' : ''}`}
+                    >
+                      <span>{r}</span>
+                      {role === r && <Check className="h-4 w-4 text-primary shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 
           <button type="submit" disabled={saving}
-            className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold py-2.5 rounded-xl hover:bg-primary/90 disabled:opacity-60 transition-colors">
+            className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground font-bold py-2.5 rounded-xl hover:bg-primary/95 disabled:opacity-60 transition-all cursor-pointer shadow-md hover:shadow-lg">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
             Create Account
           </button>
@@ -175,6 +263,8 @@ function EditUserModal({ user, onClose, onSaved }: { user: UserProfile; onClose:
   const [error, setError]       = useState("")
   const { branches }            = useBranches()
 
+  const [branchDropdownOpen, setBranchDropdownOpen] = useState(false)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
@@ -192,17 +282,26 @@ function EditUserModal({ user, onClose, onSaved }: { user: UserProfile; onClose:
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] cursor-pointer" onClick={onClose} />
+      
+      <div className="relative bg-card border border-border/80 rounded-2xl shadow-[0_24px_60px_rgba(0,0,0,0.15)] dark:shadow-[0_24px_70px_rgba(0,0,0,0.4)] w-full max-w-md max-h-[90vh] overflow-y-visible p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}>
+        {/* Top subtle brand gradient bar */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-indigo-500 to-violet-600 rounded-t-2xl" />
+
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold flex items-center gap-2">
+          <h3 className="text-lg font-extrabold flex items-center gap-2 text-foreground">
             <Pencil className="h-5 w-5 text-primary" /> Edit Profile
           </h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+          <button 
+            onClick={onClose} 
+            className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer border border-transparent hover:border-border"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Editing: <span className="font-semibold text-foreground">{user.email}</span>
         </p>
 
@@ -213,7 +312,7 @@ function EditUserModal({ user, onClose, onSaved }: { user: UserProfile; onClose:
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input value={name} onChange={(e) => setName(e.target.value)} placeholder="John Smith"
-                className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary" />
+                className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
             </div>
           </div>
 
@@ -224,7 +323,7 @@ function EditUserModal({ user, onClose, onSaved }: { user: UserProfile; onClose:
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 0100"
-                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary" />
+                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
               </div>
             </div>
 
@@ -234,27 +333,58 @@ function EditUserModal({ user, onClose, onSaved }: { user: UserProfile; onClose:
               <div className="relative">
                 <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input value={position} onChange={(e) => setPosition(e.target.value)} placeholder="Head Chef"
-                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary" />
+                  className="w-full bg-background border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
               </div>
             </div>
 
-            {/* Branch */}
-            <div className="col-span-2 space-y-1.5">
+            {/* Branch (Custom Dropdown) */}
+            <div className="col-span-2 space-y-1.5 relative">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Branch</label>
-              <select value={branch} onChange={(e) => setBranch(e.target.value)}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary">
-                <option value="">No branch assigned</option>
-                {branches.map((b) => (
-                  <option key={b.id} value={b.name}>{b.name}</option>
-                ))}
-              </select>
+              <button
+                type="button"
+                onClick={() => setBranchDropdownOpen(!branchDropdownOpen)}
+                className="flex items-center justify-between w-full bg-background border border-border hover:border-primary/50 focus:border-primary rounded-xl px-3 py-2 text-sm outline-none transition-all text-left font-medium shadow-sm cursor-pointer"
+              >
+                <span className="text-foreground font-semibold">{branch || "No branch assigned"}</span>
+                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${branchDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {branchDropdownOpen && (
+                <div className="absolute z-[60] mt-1 w-full bg-card border border-border rounded-xl shadow-xl max-h-40 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-100">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBranch("")
+                      setBranchDropdownOpen(false)
+                    }}
+                    className={`flex w-full items-center justify-between text-left px-4 py-2 text-xs hover:bg-muted transition-colors border-b border-border/40 last:border-b-0 cursor-pointer ${branch === "" ? 'bg-primary/5 font-bold' : ''}`}
+                  >
+                    <span>No branch assigned</span>
+                    {branch === "" && <Check className="h-4 w-4 text-primary shrink-0" />}
+                  </button>
+                  {branches.map((b) => (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => {
+                        setBranch(b.name)
+                        setBranchDropdownOpen(false)
+                      }}
+                      className={`flex w-full items-center justify-between text-left px-4 py-2 text-xs hover:bg-muted transition-colors border-b border-border/40 last:border-b-0 cursor-pointer ${branch === b.name ? 'bg-primary/5 font-bold' : ''}`}
+                    >
+                      <span>{b.name}</span>
+                      {branch === b.name && <Check className="h-4 w-4 text-primary shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 
           <button type="submit" disabled={saving}
-            className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold py-2.5 rounded-xl hover:bg-primary/90 disabled:opacity-60 transition-colors">
+            className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground font-bold py-2.5 rounded-xl hover:bg-primary/95 disabled:opacity-60 transition-all cursor-pointer shadow-md hover:shadow-lg">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
             Save Changes
           </button>
@@ -339,6 +469,9 @@ export function UserManagement() {
           </button>
         </div>
       </div>
+
+      {/* Demo Seeder Center (Admin only) */}
+      <DemoDataSeeder />
 
       {/* Toast */}
       {toast && (

@@ -14,6 +14,9 @@ export function TaxiManagement() {
   const [checkingEligibility, setCheckingEligibility] = useState(false);
   const isManagerOrAdmin = profile?.role === "MANAGER" || profile?.role === "ADMIN";
 
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [error, setError] = useState("");
+
   useEffect(() => {
     // Listen to real-time taxi requests from Firestore
     const unsubscribe = subscribeToTaxiRequests((data) => {
@@ -23,7 +26,15 @@ export function TaxiManagement() {
   }, []);
 
   const handleStatusUpdate = async (id: string, status: "APPROVED" | "REJECTED") => {
-    await updateTaxiStatus(id, status);
+    setUpdatingId(id);
+    setError("");
+    try {
+      await updateTaxiStatus(id, status);
+    } catch (err: any) {
+      setError(err.message || "Failed to update taxi status.");
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
   const handleRequestTaxi = async (type: "PICKUP" | "DROPOFF") => {
@@ -96,6 +107,8 @@ export function TaxiManagement() {
         <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-semibold">{pendingCount} Pending</span>
       </div>
 
+      {error && <p className="text-sm text-destructive">{error}</p>}
+
       {!isManagerOrAdmin && (
         <div className="bg-card border border-border p-6 rounded-2xl shadow-sm mb-4">
           <h3 className="font-semibold mb-4">Need Transport?</h3>
@@ -157,10 +170,10 @@ export function TaxiManagement() {
 
               {isManagerOrAdmin && request.status === "PENDING" && (
                 <div className="flex gap-3 mt-4">
-                  <button onClick={() => handleStatusUpdate(request.id, "APPROVED")} className="flex-1 bg-primary text-primary-foreground font-semibold py-2.5 rounded-xl hover:bg-primary/90 flex items-center justify-center gap-2 transition-colors">
-                    <CheckCircle2 className="w-4 h-4" /> Approve
+                  <button onClick={() => handleStatusUpdate(request.id, "APPROVED")} disabled={updatingId === request.id} className="flex-1 bg-primary text-primary-foreground font-semibold py-2.5 rounded-xl hover:bg-primary/90 flex items-center justify-center gap-2 transition-colors disabled:opacity-50">
+                    {updatingId === request.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Approve
                   </button>
-                  <button onClick={() => handleStatusUpdate(request.id, "REJECTED")} className="flex-1 bg-destructive/10 text-destructive font-semibold py-2.5 rounded-xl hover:bg-destructive/20 flex items-center justify-center gap-2 transition-colors">
+                  <button onClick={() => handleStatusUpdate(request.id, "REJECTED")} disabled={updatingId === request.id} className="flex-1 bg-destructive/10 text-destructive font-semibold py-2.5 rounded-xl hover:bg-destructive/20 flex items-center justify-center gap-2 transition-colors disabled:opacity-50">
                     <XCircle className="w-4 h-4" /> Deny
                   </button>
                 </div>

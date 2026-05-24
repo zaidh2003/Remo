@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { Shift } from "@/lib/types"
 import { weekDays } from "@/lib/mock-data"
-import { Sparkles, Loader2, AlertTriangle, CheckCircle, Clock, Plus, X, Trash2, RefreshCw, Edit } from "lucide-react"
+import { Sparkles, Loader2, AlertTriangle, CheckCircle, Clock, Plus, X, Trash2, RefreshCw, Edit, ChevronDown, Calendar, Check } from "lucide-react"
 import { subscribeToShifts, saveShift, deleteShift, updateShift as _updateShift, sendNotification, notifyShiftChange } from "@/lib/services/data-service"
 import { getAllUsers, type UserProfile } from "@/lib/services/user-service"
 import { useAuth } from "@/components/providers/auth-provider"
@@ -44,6 +44,8 @@ function AddShiftModal({
   const [endTime, setEnd]       = useState("17:00")
   const [saving, setSaving]     = useState(false)
   const [error, setError]       = useState("")
+  const [staffDropdownOpen, setStaffDropdownOpen] = useState(false)
+  const [zoneDropdownOpen, setZoneDropdownOpen]   = useState(false)
 
   const selectedStaff = staff.find((s) => s.uid === staffId)
 
@@ -53,9 +55,6 @@ function AddShiftModal({
     }
     setSaving(true); setError("")
     try {
-      // Use the manager's own branch first; fall back to staff's branch,
-      // then "main" — always store a non-empty string so the subscription
-      // filter (branchId === myBranch) can match correctly in the future.
       const shiftBranchId = managerBranch || selectedStaff?.branch || "main"
       const shiftId = await saveShift({
         staffId,
@@ -66,7 +65,6 @@ function AddShiftModal({
         status: "upcoming",
         weekLabel,
       })
-      // Notify the assigned employee
       if (staffId) {
         const newShift = {
           id: shiftId,
@@ -88,35 +86,115 @@ function AddShiftModal({
     finally { setSaving(false) }
   }
 
+  const toggleStaffDropdown = () => {
+    setStaffDropdownOpen(!staffDropdownOpen)
+    setZoneDropdownOpen(false)
+  }
+
+  const toggleZoneDropdown = () => {
+    setZoneDropdownOpen(!zoneDropdownOpen)
+    setStaffDropdownOpen(false)
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+      {/* Transparent overlay to catch click-aways without double darkening */}
+      <div className="absolute inset-0 cursor-pointer" onClick={onClose} />
+      
+      <div className="relative bg-card border border-border/80 rounded-2xl shadow-[0_24px_60px_rgba(0,0,0,0.15)] dark:shadow-[0_24px_70px_rgba(0,0,0,0.4)] w-full max-w-sm max-h-[90vh] overflow-y-visible p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}>
+        {/* Top subtle brand gradient bar */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-indigo-500 to-violet-600 rounded-t-2xl" />
+
+        {/* Modal Header */}
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-base">Add Shift — {day}</h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted"><X className="h-4 w-4" /></button>
+          <div>
+            <h3 className="font-extrabold text-base text-foreground">Add Shift</h3>
+            <p className="text-xs text-muted-foreground">{day} Schedule</p>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer border border-transparent hover:border-border"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
         <div className="space-y-3">
-          {/* Staff picker */}
-          <div className="space-y-1.5">
+          {/* Staff picker (Custom Dropdown) */}
+          <div className="space-y-1.5 relative">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Staff Member</label>
-            <select value={staffId} onChange={(e) => setStaffId(e.target.value)}
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary">
-              <option value="">Select staff…</option>
-              {staff.map((s) => (
-                <option key={s.uid} value={s.uid}>{s.name || s.email} ({s.role})</option>
-              ))}
-            </select>
+            <button
+              type="button"
+              onClick={toggleStaffDropdown}
+              className="flex items-center justify-between w-full bg-background border border-border hover:border-primary/50 focus:border-primary rounded-xl px-3 py-2 text-sm outline-none transition-all text-left font-medium shadow-sm cursor-pointer"
+            >
+              {selectedStaff ? (
+                <span className="text-foreground font-semibold">
+                  {selectedStaff.name || selectedStaff.email} <span className="text-xs font-normal text-muted-foreground">({selectedStaff.role})</span>
+                </span>
+              ) : (
+                <span className="text-muted-foreground text-xs">Select staff…</span>
+              )}
+              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${staffDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {staffDropdownOpen && (
+              <div className="absolute z-[60] mt-1 w-full bg-card border border-border rounded-xl shadow-xl max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-100">
+                {staff.length === 0 ? (
+                  <div className="px-4 py-3 text-xs text-muted-foreground text-center">
+                    No staff available
+                  </div>
+                ) : (
+                  staff.map((s) => (
+                    <button
+                      key={s.uid}
+                      type="button"
+                      onClick={() => {
+                        setStaffId(s.uid)
+                        setStaffDropdownOpen(false)
+                      }}
+                      className={`flex flex-col w-full text-left px-4 py-2 text-xs hover:bg-muted transition-colors border-b border-border/40 last:border-b-0 cursor-pointer ${staffId === s.uid ? 'bg-primary/5 hover:bg-primary/10 font-bold' : ''}`}
+                    >
+                      <span className="font-bold text-foreground">{s.name || s.email}</span>
+                      <span className="text-[10px] text-muted-foreground mt-0.5 uppercase font-medium">{s.role}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Zone */}
-          <div className="space-y-1.5">
+          {/* Zone (Custom Dropdown) */}
+          <div className="space-y-1.5 relative">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Zone</label>
-            <select value={zone} onChange={(e) => setZone(e.target.value)}
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary">
-              {ZONES.map((z) => <option key={z} value={z}>{z}</option>)}
-            </select>
+            <button
+              type="button"
+              onClick={toggleZoneDropdown}
+              className="flex items-center justify-between w-full bg-background border border-border hover:border-primary/50 focus:border-primary rounded-xl px-3 py-2 text-sm outline-none transition-all text-left font-medium shadow-sm cursor-pointer"
+            >
+              <span className="text-foreground font-semibold">{zone}</span>
+              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${zoneDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {zoneDropdownOpen && (
+              <div className="absolute z-[60] mt-1 w-full bg-card border border-border rounded-xl shadow-xl max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-100">
+                {ZONES.map((z) => (
+                  <button
+                    key={z}
+                    type="button"
+                    onClick={() => {
+                      setZone(z)
+                      setZoneDropdownOpen(false)
+                    }}
+                    className={`flex w-full items-center justify-between text-left px-4 py-2 text-xs hover:bg-muted transition-colors border-b border-border/40 last:border-b-0 cursor-pointer ${zone === z ? 'bg-primary/5 hover:bg-primary/10 font-bold' : ''}`}
+                  >
+                    <span className="text-foreground font-semibold">{z}</span>
+                    {zone === z && <Check className="h-4 w-4 text-primary shrink-0" />}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Times */}
@@ -124,12 +202,12 @@ function AddShiftModal({
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Start</label>
               <input type="time" value={startTime} onChange={(e) => setStart(e.target.value)}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary" />
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">End</label>
               <input type="time" value={endTime} onChange={(e) => setEnd(e.target.value)}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary" />
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
             </div>
           </div>
         </div>
@@ -138,11 +216,11 @@ function AddShiftModal({
 
         <div className="flex gap-3">
           <button onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl border border-border hover:bg-muted text-sm font-medium transition-colors">
+            className="flex-1 py-2.5 rounded-xl border border-border hover:bg-muted text-sm font-semibold transition-colors cursor-pointer">
             Cancel
           </button>
           <button onClick={handleSave} disabled={saving}
-            className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold py-2.5 rounded-xl text-sm disabled:opacity-60 hover:bg-primary/90 transition-colors">
+            className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold py-2.5 rounded-xl text-sm disabled:opacity-60 hover:bg-primary/95 transition-all shadow-md cursor-pointer">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
             Add Shift
           </button>
@@ -165,6 +243,8 @@ function EditShiftModal({
   const [endTime, setEnd]       = useState(shift.endTime)
   const [saving, setSaving]     = useState(false)
   const [error, setError]       = useState("")
+  const [staffDropdownOpen, setStaffDropdownOpen] = useState(false)
+  const [zoneDropdownOpen, setZoneDropdownOpen]   = useState(false)
 
   const selectedStaff = staff.find((s) => s.uid === staffId)
 
@@ -174,11 +254,9 @@ function EditShiftModal({
     }
     setSaving(true); setError("")
     try {
-      // Detect what changed
       const staffChanged = staffId !== shift.staffId
       const timeChanged = startTime !== shift.startTime || endTime !== shift.endTime
       
-      // Update the shift
       await _updateShift(shift.id, {
         staffId,
         staffName: selectedStaff?.name || selectedStaff?.email || "Unknown",
@@ -187,19 +265,15 @@ function EditShiftModal({
         endTime,
       })
       
-      // Send notifications based on what changed
       if (staffChanged) {
-        // Notify old staff member if they were assigned
         if (shift.staffId) {
           await notifyShiftChange(shift.staffId, shift, "removed")
         }
-        // Notify new staff member
         if (staffId) {
           const updatedShift = { ...shift, staffId, zone, startTime, endTime }
           await notifyShiftChange(staffId, updatedShift, "assigned")
         }
       } else if (timeChanged && staffId) {
-        // Same staff, but time changed
         const updatedShift = { ...shift, zone, startTime, endTime }
         await notifyShiftChange(staffId, updatedShift, "modified")
       }
@@ -209,35 +283,115 @@ function EditShiftModal({
     finally { setSaving(false) }
   }
 
+  const toggleStaffDropdown = () => {
+    setStaffDropdownOpen(!staffDropdownOpen)
+    setZoneDropdownOpen(false)
+  }
+
+  const toggleZoneDropdown = () => {
+    setZoneDropdownOpen(!zoneDropdownOpen)
+    setStaffDropdownOpen(false)
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+      {/* Transparent overlay to catch click-aways without double darkening */}
+      <div className="absolute inset-0 cursor-pointer" onClick={onClose} />
+      
+      <div className="relative bg-card border border-border/80 rounded-2xl shadow-[0_24px_60px_rgba(0,0,0,0.15)] dark:shadow-[0_24px_70px_rgba(0,0,0,0.4)] w-full max-w-sm max-h-[90vh] overflow-y-visible p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}>
+        {/* Top subtle brand gradient bar */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-indigo-500 to-violet-600 rounded-t-2xl" />
+
+        {/* Modal Header */}
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-base">Edit Shift — {shift.day}</h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted"><X className="h-4 w-4" /></button>
+          <div>
+            <h3 className="font-extrabold text-base text-foreground">Edit Shift</h3>
+            <p className="text-xs text-muted-foreground">{shift.day} Schedule</p>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer border border-transparent hover:border-border"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
         <div className="space-y-3">
-          {/* Staff picker */}
-          <div className="space-y-1.5">
+          {/* Staff picker (Custom Dropdown) */}
+          <div className="space-y-1.5 relative">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Staff Member</label>
-            <select value={staffId} onChange={(e) => setStaffId(e.target.value)}
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary">
-              <option value="">Select staff…</option>
-              {staff.map((s) => (
-                <option key={s.uid} value={s.uid}>{s.name || s.email} ({s.role})</option>
-              ))}
-            </select>
+            <button
+              type="button"
+              onClick={toggleStaffDropdown}
+              className="flex items-center justify-between w-full bg-background border border-border hover:border-primary/50 focus:border-primary rounded-xl px-3 py-2 text-sm outline-none transition-all text-left font-medium shadow-sm cursor-pointer"
+            >
+              {selectedStaff ? (
+                <span className="text-foreground font-semibold">
+                  {selectedStaff.name || selectedStaff.email} <span className="text-xs font-normal text-muted-foreground">({selectedStaff.role})</span>
+                </span>
+              ) : (
+                <span className="text-muted-foreground text-xs">Select staff…</span>
+              )}
+              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${staffDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {staffDropdownOpen && (
+              <div className="absolute z-[60] mt-1 w-full bg-card border border-border rounded-xl shadow-xl max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-100">
+                {staff.length === 0 ? (
+                  <div className="px-4 py-3 text-xs text-muted-foreground text-center">
+                    No staff available
+                  </div>
+                ) : (
+                  staff.map((s) => (
+                    <button
+                      key={s.uid}
+                      type="button"
+                      onClick={() => {
+                        setStaffId(s.uid)
+                        setStaffDropdownOpen(false)
+                      }}
+                      className={`flex flex-col w-full text-left px-4 py-2 text-xs hover:bg-muted transition-colors border-b border-border/40 last:border-b-0 cursor-pointer ${staffId === s.uid ? 'bg-primary/5 hover:bg-primary/10 font-bold' : ''}`}
+                    >
+                      <span className="font-bold text-foreground">{s.name || s.email}</span>
+                      <span className="text-[10px] text-muted-foreground mt-0.5 uppercase font-medium">{s.role}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Zone */}
-          <div className="space-y-1.5">
+          {/* Zone (Custom Dropdown) */}
+          <div className="space-y-1.5 relative">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Zone</label>
-            <select value={zone} onChange={(e) => setZone(e.target.value)}
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary">
-              {ZONES.map((z) => <option key={z} value={z}>{z}</option>)}
-            </select>
+            <button
+              type="button"
+              onClick={toggleZoneDropdown}
+              className="flex items-center justify-between w-full bg-background border border-border hover:border-primary/50 focus:border-primary rounded-xl px-3 py-2 text-sm outline-none transition-all text-left font-medium shadow-sm cursor-pointer"
+            >
+              <span className="text-foreground font-semibold">{zone}</span>
+              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${zoneDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {zoneDropdownOpen && (
+              <div className="absolute z-[60] mt-1 w-full bg-card border border-border rounded-xl shadow-xl max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-100">
+                {ZONES.map((z) => (
+                  <button
+                    key={z}
+                    type="button"
+                    onClick={() => {
+                      setZone(z)
+                      setZoneDropdownOpen(false)
+                    }}
+                    className={`flex w-full items-center justify-between text-left px-4 py-2 text-xs hover:bg-muted transition-colors border-b border-border/40 last:border-b-0 cursor-pointer ${zone === z ? 'bg-primary/5 hover:bg-primary/10 font-bold' : ''}`}
+                  >
+                    <span className="text-foreground font-semibold">{z}</span>
+                    {zone === z && <Check className="h-4 w-4 text-primary shrink-0" />}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Times */}
@@ -245,12 +399,12 @@ function EditShiftModal({
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Start</label>
               <input type="time" value={startTime} onChange={(e) => setStart(e.target.value)}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary" />
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">End</label>
               <input type="time" value={endTime} onChange={(e) => setEnd(e.target.value)}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary" />
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
             </div>
           </div>
         </div>
@@ -259,11 +413,11 @@ function EditShiftModal({
 
         <div className="flex gap-3">
           <button onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl border border-border hover:bg-muted text-sm font-medium transition-colors">
+            className="flex-1 py-2.5 rounded-xl border border-border hover:bg-muted text-sm font-semibold transition-colors cursor-pointer">
             Cancel
           </button>
           <button onClick={handleSave} disabled={saving}
-            className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold py-2.5 rounded-xl text-sm disabled:opacity-60 hover:bg-primary/90 transition-colors">
+            className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold py-2.5 rounded-xl text-sm disabled:opacity-60 hover:bg-primary/95 transition-all shadow-md cursor-pointer">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
             Save Changes
           </button>
@@ -352,46 +506,62 @@ export function WeeklyScheduler() {
     return () => unsub()
   }, [weekLabel, isAdmin, myBranch])
 
+  const [error, setError]           = useState("")
+
   // Load staff for the add-shift modal
   useEffect(() => {
     if (isManagerOrAdmin) getAllUsers().then(setStaff)
   }, [isManagerOrAdmin])
 
   const handleDelete = async (id: string) => {
-    await deleteShift(id)
+    const ok = window.confirm("Are you sure you want to delete this shift?")
+    if (!ok) return
+    setError("")
+    try {
+      await deleteShift(id)
+    } catch (err: any) {
+      setError(err.message || "Failed to delete shift.")
+      alert(err.message || "Failed to delete shift.")
+    }
   }
 
   const handleMarkUnavailable = async (shift: Shift) => {
-    // Store the original staffId before marking as vacant
-    const originalStaffId = shift.staffId
-    
-    // Mark shift as vacant
-    await _updateShift(shift.id, { status: "vacant", staffId: null, staffName: null })
-    
-    // Notify the worker being removed from the shift
-    if (originalStaffId) {
-      await notifyShiftChange(originalStaffId, shift, "removed")
+    setError("")
+    try {
+      // Store the original staffId before marking as vacant
+      const originalStaffId = shift.staffId
+      
+      // Mark shift as vacant
+      await _updateShift(shift.id, { status: "vacant", staffId: null, staffName: null })
+      
+      // Notify the worker being removed from the shift
+      if (originalStaffId) {
+        await notifyShiftChange(originalStaffId, shift, "removed")
+      }
+      
+      // Calculate remaining time and create shortage alert
+      const now = new Date()
+      const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
+      const { createShortageAlert } = await import("@/lib/services/user-service")
+      await createShortageAlert({
+        createdBy: profile?.uid ?? "system",
+        createdByName: profile?.name || profile?.email || "Manager",
+        branchId: shift.branchId || "main",
+        branchName: shift.branchId || "Main Branch",
+        zone: shift.zone as any,
+        date: shift.day,
+        startTime: currentTime, // remaining shift starts now
+        endTime: shift.endTime,
+        reason: `Worker marked unavailable — ${shift.staffName || "Unknown"}`,
+        priority: "HIGH",
+        status: "OPEN",
+      })
+      // Broadcast notification to all
+      await sendNotification("all", "🚨 Emergency Vacancy", `${shift.zone} zone needs coverage from ${currentTime} to ${shift.endTime} on ${shift.day}.`, "shortage")
+    } catch (err: any) {
+      setError(err.message || "Failed to mark worker unavailable.")
+      alert(err.message || "Failed to mark worker unavailable.")
     }
-    
-    // Calculate remaining time and create shortage alert
-    const now = new Date()
-    const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
-    const { createShortageAlert } = await import("@/lib/services/user-service")
-    await createShortageAlert({
-      createdBy: profile?.uid ?? "system",
-      createdByName: profile?.name || profile?.email || "Manager",
-      branchId: shift.branchId || "main",
-      branchName: shift.branchId || "Main Branch",
-      zone: shift.zone as any,
-      date: shift.day,
-      startTime: currentTime, // remaining shift starts now
-      endTime: shift.endTime,
-      reason: `Worker marked unavailable — ${shift.staffName || "Unknown"}`,
-      priority: "HIGH",
-      status: "OPEN",
-    })
-    // Broadcast notification to all
-    await sendNotification("all", "🚨 Emergency Vacancy", `${shift.zone} zone needs coverage from ${currentTime} to ${shift.endTime} on ${shift.day}.`, "shortage")
   }
 
   const handleOptimize = async () => {
@@ -460,6 +630,7 @@ export function WeeklyScheduler() {
               })}
             </div>
           )}
+          {error && <p className="text-sm text-destructive mt-2">{error}</p>}
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-7 gap-2">

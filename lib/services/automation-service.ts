@@ -5,7 +5,7 @@
 
 import { collection, query, where, getDocs, updateDoc, doc, serverTimestamp, addDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
-import { ShortageAlert, Shift, UserProfile } from "@/lib/types"
+import { ShortageAlert, Shift } from "@/lib/types"
 import { sendNotification } from "./data-service"
 
 /**
@@ -117,7 +117,7 @@ export async function autoSendShiftReminders(): Promise<number> {
         shift.staffId,
         "📅 Shift Reminder",
         `You have a shift tomorrow (${shift.day}) at ${shift.zone} from ${shift.startTime} to ${shift.endTime}.`,
-        "scheduler"
+        "shift"
       )
       
       notificationsSent++
