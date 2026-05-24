@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Navbar } from "./navbar"
+import { useLang } from "@/components/providers/language-provider"
 import { DashboardOverview } from "./dashboard-overview"
 import { WeeklyScheduler } from "./weekly-scheduler"
 import { EmergencyBoard } from "./emergency-board"
@@ -21,6 +22,7 @@ import { Bell, LogOut } from "lucide-react"
 import { ProfilePanel, SickLeaveModal } from "./profile-panel"
 
 export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile | null }) {
+  const { t, lang } = useLang()
   const [activeTab, setActiveTab] = useState("dashboard")
   const [showProfile, setShowProfile] = useState(false)
   const [showSickLeave, setShowSickLeave] = useState(false)
@@ -62,7 +64,7 @@ export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile 
       case "settings":
         return (
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-2xl font-bold mb-6">Settings & Roles</h2>
+            <h2 className="text-2xl font-bold mb-6">{t.settings}</h2>
             <RoleManagement />
           </div>
         )
@@ -98,19 +100,19 @@ export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile 
 
   const getPageTitle = () => {
     switch (activeTab) {
-      case "dashboard": return "Dashboard Overview"
-      case "scheduler": return "Smart Scheduler"
-      case "tasks": return "Task Board"
-      case "emergencies": return "Emergency Shifts & Swaps"
-      case "taxi": return "Transport Management"
-      case "inventory": return "Inventory Management"
-      case "staff": return "Staff Directory"
-      case "settings": return "System Settings"
-      case "users": return "User Management"
-      case "shortage": return "Staff Shortage Alerts"
-      case "swaps": return "Shift Swap Requests"
-      case "branches": return "Branch Management"
-      default: return "Dashboard"
+      case "dashboard": return t.dashboard
+      case "scheduler": return t.scheduler
+      case "tasks": return t.tasks
+      case "emergencies": return t.emergencies
+      case "taxi": return t.taxi
+      case "inventory": return t.inventory
+      case "staff": return t.staff
+      case "settings": return t.settings
+      case "users": return t.users
+      case "shortage": return t.shortage
+      case "swaps": return t.swapRequests
+      case "branches": return t.branchManagement
+      default: return t.dashboard
     }
   }
 
@@ -151,13 +153,13 @@ export function RestaurantDashboard({ userProfile }: { userProfile: UserProfile 
           <div>
             <h2 className="text-3xl font-bold tracking-tight">{getPageTitle()}</h2>
             <p className="text-muted-foreground mt-1" suppressHydrationWarning>
-              {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+              {new Date().toLocaleDateString(lang === "ru" ? "ru-RU" : lang === "lv" ? "lv-LV" : "en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
             </p>
           </div>
           
           {userProfile && (
             <div className="hidden md:flex flex-col items-end">
-              <span className="text-sm font-medium">Welcome, {userProfile.name}</span>
+              <span className="text-sm font-medium">{t.welcome}, {userProfile.name}</span>
               <span className="text-xs px-2 py-0.5 bg-primary/20 text-primary rounded-full mt-1">
                 {userProfile.role}
               </span>

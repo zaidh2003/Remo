@@ -3,28 +3,14 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { LayoutDashboard, Calendar, AlertTriangle, CarFront, Users, Settings, UserCog, BellRing, Building2, ArrowRightLeft, Package, ClipboardList } from "lucide-react";
+import { useLang } from "@/components/providers/language-provider";
 
 interface NavItem {
   id: string;
   icon: React.ReactNode;
-  label: string;
+  labelKey: string;
   roles?: string[]; // If undefined, available to all
 }
-
-const items: NavItem[] = [
-  { id: "dashboard",  icon: <LayoutDashboard size={24} />, label: "Dashboard" },
-  { id: "scheduler",  icon: <Calendar size={24} />,        label: "Scheduler",  roles: ["ADMIN", "MANAGER"] },
-  { id: "tasks",      icon: <ClipboardList size={24} />,   label: "Tasks" },
-  { id: "emergencies",icon: <AlertTriangle size={24} />,   label: "Emergencies" },
-  { id: "swaps",      icon: <ArrowRightLeft size={24} />,  label: "Swap Requests" },
-  { id: "shortage",   icon: <BellRing size={24} />,        label: "Shortage" },
-  { id: "taxi",       icon: <CarFront size={24} />,        label: "Transport" },
-  { id: "inventory",  icon: <Package size={24} />,         label: "Inventory" },
-  { id: "staff",      icon: <Users size={24} />,           label: "Staff" },
-  { id: "users",      icon: <UserCog size={24} />,         label: "Users",      roles: ["ADMIN"] },
-  { id: "branches",   icon: <Building2 size={24} />,       label: "Branches",   roles: ["ADMIN"] },
-  { id: "settings",   icon: <Settings size={24} />,        label: "Settings",   roles: ["ADMIN"] },
-];
 
 interface LumaBarProps {
   activeTab: string;
@@ -33,6 +19,23 @@ interface LumaBarProps {
 }
 
 export function Navbar({ activeTab, setActiveTab, userRole }: LumaBarProps) {
+  const { t } = useLang();
+
+  const items: NavItem[] = [
+    { id: "dashboard",  icon: <LayoutDashboard size={24} />, labelKey: "dashboard" },
+    { id: "scheduler",  icon: <Calendar size={24} />,        labelKey: "scheduler",  roles: ["ADMIN", "MANAGER"] },
+    { id: "tasks",      icon: <ClipboardList size={24} />,   labelKey: "tasks" },
+    { id: "emergencies",icon: <AlertTriangle size={24} />,   labelKey: "emergencies" },
+    { id: "swaps",      icon: <ArrowRightLeft size={24} />,  labelKey: "swapRequests" },
+    { id: "shortage",   icon: <BellRing size={24} />,        labelKey: "shortage" },
+    { id: "taxi",       icon: <CarFront size={24} />,        labelKey: "taxi" },
+    { id: "inventory",  icon: <Package size={24} />,         labelKey: "inventory" },
+    { id: "staff",      icon: <Users size={24} />,           labelKey: "staff" },
+    { id: "users",      icon: <UserCog size={24} />,         labelKey: "users",      roles: ["ADMIN"] },
+    { id: "branches",   icon: <Building2 size={24} />,       labelKey: "branches",   roles: ["ADMIN"] },
+    { id: "settings",   icon: <Settings size={24} />,        labelKey: "settings",   roles: ["ADMIN"] },
+  ];
+  
   const visibleItems = items.filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
   
   const activeIndex = visibleItems.findIndex(item => item.id === activeTab);
@@ -59,7 +62,7 @@ export function Navbar({ activeTab, setActiveTab, userRole }: LumaBarProps) {
             <motion.div key={item.id} className="relative flex flex-col items-center group">
               {/* Button */}
               <motion.button
-                aria-label={item.label}
+                aria-label={t[item.labelKey as keyof typeof t] as string || item.labelKey}
                 onClick={() => setActiveTab(item.id)}
                 whileHover={{ scale: 1.15 }}
                 animate={{ scale: isActive ? 1.25 : 1 }}
@@ -74,7 +77,7 @@ export function Navbar({ activeTab, setActiveTab, userRole }: LumaBarProps) {
 
               {/* Tooltip */}
               <span className="absolute bottom-full mb-3 px-3 py-1.5 text-xs font-medium rounded-lg bg-foreground text-background opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-lg">
-                {item.label}
+                {t[item.labelKey as keyof typeof t] || item.labelKey}
               </span>
             </motion.div>
           );

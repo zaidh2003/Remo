@@ -12,6 +12,7 @@ import { subscribeToShifts, saveShift, deleteShift, updateShift as _updateShift,
 import { getAllUsers, type UserProfile } from "@/lib/services/user-service"
 import { useAuth } from "@/components/providers/auth-provider"
 import { optimizeSchedule } from "@/lib/services/groq-service"
+import { useLang } from "@/components/providers/language-provider"
 
 const ZONES = ["Meat", "Salad", "Grill", "Fries", "Dishwashing", "Bar", "Waiter", "Kitchen", "Host"]
 
@@ -38,6 +39,7 @@ function AddShiftModal({
   managerBranch: string
   onClose: () => void; onSaved: () => void
 }) {
+  const { t } = useLang()
   const [staffId, setStaffId]   = useState("")
   const [zone, setZone]         = useState("Kitchen")
   const [startTime, setStart]   = useState("09:00")
@@ -51,7 +53,7 @@ function AddShiftModal({
 
   const handleSave = async () => {
     if (!staffId || !zone || !startTime || !endTime) {
-      setError("Fill in all fields."); return
+      setError(t.fillAllFields); return
     }
     setSaving(true); setError("")
     try {
@@ -109,8 +111,8 @@ function AddShiftModal({
         {/* Modal Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-extrabold text-base text-foreground">Add Shift</h3>
-            <p className="text-xs text-muted-foreground">{day} Schedule</p>
+            <h3 className="font-extrabold text-base text-foreground">{t.addShift}</h3>
+            <p className="text-xs text-muted-foreground">{(t[day.toLowerCase() as keyof typeof t] || day)}</p>
           </div>
           <button 
             onClick={onClose} 
@@ -123,7 +125,7 @@ function AddShiftModal({
         <div className="space-y-3">
           {/* Staff picker (Custom Dropdown) */}
           <div className="space-y-1.5 relative">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Staff Member</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.staffMember}</label>
             <button
               type="button"
               onClick={toggleStaffDropdown}
@@ -134,7 +136,7 @@ function AddShiftModal({
                   {selectedStaff.name || selectedStaff.email} <span className="text-xs font-normal text-muted-foreground">({selectedStaff.role})</span>
                 </span>
               ) : (
-                <span className="text-muted-foreground text-xs">Select staff…</span>
+                <span className="text-muted-foreground text-xs">{t.staffMember}...</span>
               )}
               <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${staffDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -167,7 +169,7 @@ function AddShiftModal({
 
           {/* Zone (Custom Dropdown) */}
           <div className="space-y-1.5 relative">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Zone</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.zone}</label>
             <button
               type="button"
               onClick={toggleZoneDropdown}
@@ -217,12 +219,12 @@ function AddShiftModal({
         <div className="flex gap-3">
           <button onClick={onClose}
             className="flex-1 py-2.5 rounded-xl border border-border hover:bg-muted text-sm font-semibold transition-colors cursor-pointer">
-            Cancel
+            {t.cancel}
           </button>
           <button onClick={handleSave} disabled={saving}
             className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold py-2.5 rounded-xl text-sm disabled:opacity-60 hover:bg-primary/95 transition-all shadow-md cursor-pointer">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-            Add Shift
+            {t.addShift}
           </button>
         </div>
       </div>
@@ -237,6 +239,7 @@ function EditShiftModal({
   shift: Shift; staff: UserProfile[]
   onClose: () => void; onSaved: () => void
 }) {
+  const { t } = useLang()
   const [staffId, setStaffId]   = useState(shift.staffId || "")
   const [zone, setZone]         = useState(shift.zone)
   const [startTime, setStart]   = useState(shift.startTime)
@@ -250,7 +253,7 @@ function EditShiftModal({
 
   const handleSave = async () => {
     if (!staffId || !zone || !startTime || !endTime) {
-      setError("Fill in all fields."); return
+      setError(t.fillAllFields); return
     }
     setSaving(true); setError("")
     try {
@@ -306,8 +309,8 @@ function EditShiftModal({
         {/* Modal Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-extrabold text-base text-foreground">Edit Shift</h3>
-            <p className="text-xs text-muted-foreground">{shift.day} Schedule</p>
+            <h3 className="font-extrabold text-base text-foreground">{t.edit}</h3>
+            <p className="text-xs text-muted-foreground">{(t[shift.day.toLowerCase() as keyof typeof t] || shift.day)}</p>
           </div>
           <button 
             onClick={onClose} 
@@ -320,7 +323,7 @@ function EditShiftModal({
         <div className="space-y-3">
           {/* Staff picker (Custom Dropdown) */}
           <div className="space-y-1.5 relative">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Staff Member</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.staffMember}</label>
             <button
               type="button"
               onClick={toggleStaffDropdown}
@@ -364,7 +367,7 @@ function EditShiftModal({
 
           {/* Zone (Custom Dropdown) */}
           <div className="space-y-1.5 relative">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Zone</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.zone}</label>
             <button
               type="button"
               onClick={toggleZoneDropdown}
@@ -397,12 +400,12 @@ function EditShiftModal({
           {/* Times */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Start</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.start}</label>
               <input type="time" value={startTime} onChange={(e) => setStart(e.target.value)}
                 className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">End</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.end}</label>
               <input type="time" value={endTime} onChange={(e) => setEnd(e.target.value)}
                 className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
             </div>
@@ -414,12 +417,12 @@ function EditShiftModal({
         <div className="flex gap-3">
           <button onClick={onClose}
             className="flex-1 py-2.5 rounded-xl border border-border hover:bg-muted text-sm font-semibold transition-colors cursor-pointer">
-            Cancel
+            {t.cancel}
           </button>
           <button onClick={handleSave} disabled={saving}
             className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold py-2.5 rounded-xl text-sm disabled:opacity-60 hover:bg-primary/95 transition-all shadow-md cursor-pointer">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
-            Save Changes
+            {t.save}
           </button>
         </div>
       </div>
@@ -479,6 +482,7 @@ function ShiftCard({ shift, canEdit, onDelete, onMarkUnavailable, onEdit }: {
 
 // ── Main Scheduler ────────────────────────────────────────────────────────────
 export function WeeklyScheduler() {
+  const { t } = useLang()
   const { profile } = useAuth()
   const [allShifts, setAllShifts]   = useState<Shift[]>([])
   const [staff, setStaff]           = useState<UserProfile[]>([])
@@ -602,7 +606,7 @@ export function WeeklyScheduler() {
         <CardHeader>
           <div className="flex items-start justify-between flex-wrap gap-3">
             <div>
-              <CardTitle>Weekly Schedule</CardTitle>
+              <CardTitle>{t.weeklySchedule}</CardTitle>
               <CardDescription>Week of {weekLabel} · {allShifts.length} shifts{!isAdmin && myBranch ? ` · ${myBranch}` : ""}</CardDescription>
             </div>
             <div className="flex gap-2">
@@ -610,8 +614,8 @@ export function WeeklyScheduler() {
                 <Button onClick={handleOptimize} disabled={isOptimizing || allShifts.length === 0}
                   className="gap-2 bg-primary hover:bg-primary/90">
                   {isOptimizing
-                    ? <><Loader2 className="h-4 w-4 animate-spin" />Optimizing…</>
-                    : <><Sparkles className="h-4 w-4" />Optimize with Groq</>}
+                    ? <><Loader2 className="h-4 w-4 animate-spin" />{t.optimizing}</>
+                    : <><Sparkles className="h-4 w-4" />{t.optimizeWithGroq}</>}
                 </Button>
               )}
             </div>
@@ -621,10 +625,11 @@ export function WeeklyScheduler() {
               {Object.entries(statusCounts).map(([status, count]) => {
                 const cfg = statusConfig[status]
                 if (!cfg || count === 0) return null
+                const translatedLabel = t[status as keyof typeof t]?.toString() || cfg.label
                 return (
                   <Badge key={status} className={cn("gap-1", cfg.badge)}>
                     <cfg.icon className="h-3 w-3" />
-                    {cfg.label}: {count}
+                    {translatedLabel}: {count}
                   </Badge>
                 )
               })}
@@ -637,7 +642,7 @@ export function WeeklyScheduler() {
             {weekDays.map((day) => (
               <div key={day} className="flex flex-col min-w-0">
                 <div className="mb-2 rounded-md bg-muted px-2 py-1.5 text-center text-sm font-semibold">
-                  {day.slice(0, 3)}
+                  {(t[day.toLowerCase() as keyof typeof t]?.toString().slice(0, 3) || day.slice(0, 3))}
                 </div>
                 <div className="flex-1 space-y-2">
                   {shiftsByDay[day].length > 0
@@ -650,14 +655,14 @@ export function WeeklyScheduler() {
                       ))
                     : (
                       <div className="rounded-lg border border-dashed border-muted-foreground/30 p-3 text-center text-xs text-muted-foreground">
-                        No shifts
+                        {t.noShifts}
                       </div>
                     )}
                   {/* Add shift button — managers only */}
                   {isManagerOrAdmin && (
                     <button onClick={() => setAddingDay(day)}
                       className="w-full flex items-center justify-center gap-1 py-1.5 rounded-lg border border-dashed border-primary/30 text-primary/60 hover:border-primary hover:text-primary text-xs transition-colors">
-                      <Plus className="h-3 w-3" /> Add
+                      <Plus className="h-3 w-3" /> {t.add}
                     </button>
                   )}
                 </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Mail, Lock, Eye, EyeOff, Loader, Globe, User, Phone, Briefcase } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -55,9 +55,30 @@ const translations = {
 }
 
 export function LoginPage() {
-  const [lang, setLang] = useState<Language>("en")
+  const [lang, setLang] = useState<Language>(() => {
+    // Load from localStorage on mount (same key as LanguageProvider)
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem("remo_lang") as Language | null
+      if (saved && ["en", "ru", "lv"].includes(saved)) return saved
+    }
+    return "en"
+  })
   const t = translations[lang]
   const router = useRouter()
+
+  // Persist language to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("remo_lang", lang)
+      // Dispatch custom event so LanguageProvider can pick it up
+      window.dispatchEvent(new CustomEvent("languageChanged", { detail: { lang } }))
+    }
+  }, [lang])
+
+  // Save language to localStorage whenever it changes
+  const handleLanguageChange = (newLang: Language) => {
+    setLang(newLang)
+  }
 
   const [isLoginMode, setIsLoginMode] = useState(true)
   const [email, setEmail]       = useState("")
@@ -139,7 +160,7 @@ export function LoginPage() {
         <select
           className="bg-black/30 text-white border border-white/20 rounded-lg px-2 py-1 text-sm backdrop-blur-sm outline-none"
           value={lang}
-          onChange={(e) => setLang(e.target.value as Language)}
+          onChange={(e) => handleLanguageChange(e.target.value as Language)}
         >
           <option className="text-black" value="en">EN</option>
           <option className="text-black" value="ru">RU</option>

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ForecastChart } from "./forecast-chart"
 import { TaskBoard } from "./task-board"
 import { useAuth } from "@/components/providers/auth-provider"
+import { useLang } from "@/components/providers/language-provider"
 import { getAllUsers } from "@/lib/services/user-service"
 import { getShifts } from "@/lib/services/data-service"
 import { subscribeToNotifications } from "@/lib/services/data-service"
@@ -20,6 +21,7 @@ interface DashboardOverviewProps {
 
 // ── Employee: My Shifts Card ───────────────────────────────────────────────────
 function MyShiftsCard({ uid, onNavigate }: { uid: string; onNavigate?: (tab: string) => void }) {
+  const { t } = useLang()
   const [myShifts, setMyShifts] = useState<Shift[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -45,13 +47,13 @@ function MyShiftsCard({ uid, onNavigate }: { uid: string; onNavigate?: (tab: str
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-primary" />
-            My Shifts This Week
+            {t.myShiftsThisWeek}
           </CardTitle>
           <button
             onClick={() => onNavigate?.("swaps")}
             className="text-xs text-primary hover:underline font-medium"
           >
-            Request Swap →
+            {t.requestSwap} →
           </button>
         </div>
       </CardHeader>
@@ -63,36 +65,40 @@ function MyShiftsCard({ uid, onNavigate }: { uid: string; onNavigate?: (tab: str
         ) : sortedShifts.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Calendar className="h-8 w-8 mx-auto mb-2 opacity-30" />
-            <p className="text-sm">No shifts scheduled this week.</p>
+            <p className="text-sm">{t.noShifts}</p>
           </div>
         ) : (
           <div className="space-y-2">
-            {sortedShifts.map((shift) => (
-              <div
-                key={shift.id}
-                className="flex items-center justify-between rounded-xl border bg-muted/30 px-4 py-3"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary text-xs font-bold shrink-0">
-                    {shift.day.slice(0, 3)}
+            {sortedShifts.map((shift) => {
+              const translatedDay = t[shift.day.toLowerCase() as keyof typeof t]?.toString() || shift.day;
+              const translatedStatus = t[shift.status as keyof typeof t]?.toString() || shift.status;
+              return (
+                <div
+                  key={shift.id}
+                  className="flex items-center justify-between rounded-xl border bg-muted/30 px-4 py-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary text-xs font-bold shrink-0">
+                      {translatedDay.slice(0, 3)}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm">{shift.zone}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {shift.startTime} – {shift.endTime}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-sm">{shift.zone}</p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {shift.startTime} – {shift.endTime}
-                    </p>
-                  </div>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                    shift.status === "optimal" ? "bg-green-500/15 text-green-400" :
+                    shift.status === "vacant"  ? "bg-red-500/15 text-red-400" :
+                    "bg-primary/10 text-primary"
+                  }`}>
+                    {translatedStatus}
+                  </span>
                 </div>
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                  shift.status === "optimal" ? "bg-green-500/15 text-green-400" :
-                  shift.status === "vacant"  ? "bg-red-500/15 text-red-400" :
-                  "bg-primary/10 text-primary"
-                }`}>
-                  {shift.status}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </CardContent>
@@ -102,10 +108,11 @@ function MyShiftsCard({ uid, onNavigate }: { uid: string; onNavigate?: (tab: str
 
 // ── Employee: Quick Actions Card ───────────────────────────────────────────────
 function EmployeeQuickActions({ onNavigate }: { onNavigate?: (tab: string) => void }) {
+  const { t } = useLang()
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Quick Actions</CardTitle>
+        <CardTitle>{t.quickActions}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <button
@@ -113,28 +120,28 @@ function EmployeeQuickActions({ onNavigate }: { onNavigate?: (tab: string) => vo
           onClick={() => onNavigate?.("sick-leave")}
           className="w-full rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 text-sm font-medium transition-colors hover:bg-red-500/20 cursor-pointer text-left flex items-center gap-2"
         >
-          <Bell className="h-4 w-4" /> Report Sick Leave
+          <Bell className="h-4 w-4" /> {t.reportSickLeave}
         </button>
         <button
           type="button"
           onClick={() => onNavigate?.("swaps")}
           className="w-full rounded-lg bg-secondary px-4 py-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 cursor-pointer text-left flex items-center gap-2"
         >
-          <ArrowRightLeft className="h-4 w-4" /> Request Shift Swap
+          <ArrowRightLeft className="h-4 w-4" /> {t.requestSwap}
         </button>
         <button
           type="button"
           onClick={() => onNavigate?.("taxi")}
           className="w-full rounded-lg bg-secondary px-4 py-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 cursor-pointer text-left flex items-center gap-2"
         >
-          <MapPin className="h-4 w-4" /> Request Transport
+          <MapPin className="h-4 w-4" /> {t.requestTaxi}
         </button>
         <button
           type="button"
           onClick={() => onNavigate?.("tasks")}
           className="w-full rounded-lg bg-secondary px-4 py-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 cursor-pointer text-left flex items-center gap-2"
         >
-          <Calendar className="h-4 w-4" /> View My Tasks
+          <Calendar className="h-4 w-4" /> {t.tasks}
         </button>
       </CardContent>
     </Card>
@@ -143,6 +150,7 @@ function EmployeeQuickActions({ onNavigate }: { onNavigate?: (tab: string) => vo
 
 // ── Manager/Admin: Live KPI Stats ──────────────────────────────────────────────
 function LiveKPIs({ role, branch }: { role: string; branch?: string }) {
+  const { t } = useLang()
   const [staffCount, setStaffCount]     = useState<number | null>(null)
   const [shiftCount, setShiftCount]     = useState<number | null>(null)
   const [vacantCount, setVacantCount]   = useState<number | null>(null)
@@ -173,25 +181,25 @@ function LiveKPIs({ role, branch }: { role: string; branch?: string }) {
 
   const stats = [
     {
-      title: "Active Staff",
+      title: t.activeStaff,
       value: fmt(staffCount),
       change: isAdmin ? "All branches" : `Branch: ${branch || "—"}`,
       icon: Users,
     },
     {
-      title: "Shifts This Week",
+      title: t.shiftsThisWeek,
       value: fmt(shiftCount),
-      change: `${fmt(vacantCount)} vacant`,
+      change: `${fmt(vacantCount)} ${t.vacant.toLowerCase()}`,
       icon: Calendar,
     },
     {
-      title: "Labor Cost Today",
+      title: t.laborCostToday,
       value: "$1,247",
       change: "–8% vs budget",
       icon: DollarSign,
     },
     {
-      title: "Open Notifications",
+      title: t.openNotifications,
       value: fmt(unreadCount),
       change: "Unread alerts",
       icon: Bell,
@@ -220,10 +228,11 @@ function LiveKPIs({ role, branch }: { role: string; branch?: string }) {
 
 // ── Manager Quick Actions ──────────────────────────────────────────────────────
 function ManagerQuickActions({ onNavigate }: { onNavigate?: (tab: string) => void }) {
+  const { t } = useLang()
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Quick Actions</CardTitle>
+        <CardTitle>{t.quickActions}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <button
@@ -231,28 +240,28 @@ function ManagerQuickActions({ onNavigate }: { onNavigate?: (tab: string) => voi
           onClick={() => onNavigate?.("scheduler")}
           className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 cursor-pointer"
         >
-          Generate Weekly Schedule
+          {t.generateWeeklySchedule}
         </button>
         <button
           type="button"
           onClick={() => onNavigate?.("emergencies")}
           className="w-full rounded-lg bg-secondary px-4 py-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 cursor-pointer"
         >
-          Review Emergency Shifts
+          {t.reviewEmergencyShifts}
         </button>
         <button
           type="button"
           onClick={() => onNavigate?.("staff")}
           className="w-full rounded-lg bg-secondary px-4 py-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 cursor-pointer"
         >
-          Update Staff Directory
+          {t.updateStaffDirectory}
         </button>
         <button
           type="button"
           onClick={() => onNavigate?.("shortage")}
           className="w-full rounded-lg bg-secondary px-4 py-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 cursor-pointer"
         >
-          View Shortage Alerts
+          {t.viewShortageAlerts}
         </button>
       </CardContent>
     </Card>

@@ -8,6 +8,7 @@ import type { Task } from "@/lib/types"
 import { subscribeToTasks, saveTask, updateTask, deleteTask } from "@/lib/services/data-service"
 import { getAllUsers, type UserProfile } from "@/lib/services/user-service"
 import { useAuth } from "@/components/providers/auth-provider"
+import { useLang } from "@/components/providers/language-provider"
 import { Clock, MapPin, User, Plus, X, Loader2, CheckCircle2, Trash2, ChevronDown, Check } from "lucide-react"
 
 const categories = ["Preparation", "Cooking", "Serving", "Cleaning", "Inventory Management"] as const
@@ -33,6 +34,7 @@ const categoryHeaderColors: Record<Category, string> = {
 function AddTaskForm({ category, staff, onClose }: {
   category: Category; staff: UserProfile[]; onClose: () => void
 }) {
+  const { t } = useLang()
   const [title, setTitle]       = useState("")
   const [priority, setPriority] = useState<"high" | "medium" | "low">("medium")
   const [zone, setZone]         = useState("")
@@ -67,7 +69,7 @@ function AddTaskForm({ category, staff, onClose }: {
 
   return (
     <div className="bg-card border border-primary/30 rounded-xl p-3 space-y-2.5 mt-2 animate-in fade-in slide-in-from-top-1 duration-150 relative z-20">
-      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Task title…"
+      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t.taskTitle}
         className="w-full bg-background border border-border rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary" />
       
       <div className="grid grid-cols-2 gap-2">
@@ -102,10 +104,10 @@ function AddTaskForm({ category, staff, onClose }: {
           )}
         </div>
 
-        <input value={zone} onChange={(e) => setZone(e.target.value)} placeholder="Zone"
+        <input value={zone} onChange={(e) => setZone(e.target.value)} placeholder={t.zone}
           className="bg-background border border-border rounded-lg px-2 py-1.5 text-xs outline-none focus:border-primary" />
         
-        <input value={timeWindow} onChange={(e) => setTime(e.target.value)} placeholder="e.g. 9:00-11:00"
+        <input value={timeWindow} onChange={(e) => setTime(e.target.value)} placeholder={t.timeWindow}
           className="bg-background border border-border rounded-lg px-2 py-1.5 text-xs outline-none focus:border-primary" />
         
         {/* Assignee (Custom Dropdown) */}
@@ -115,7 +117,7 @@ function AddTaskForm({ category, staff, onClose }: {
             onClick={toggleAssigneeDropdown}
             className="flex items-center justify-between w-full bg-background border border-border hover:border-primary/50 focus:border-primary rounded-lg px-2.5 py-1.5 text-xs outline-none transition-all text-left font-medium cursor-pointer"
           >
-            <span className="truncate max-w-[80px]">{assignedTo || "Unassigned"}</span>
+            <span className="truncate max-w-[80px]">{assignedTo || t.assignedTo}</span>
             <ChevronDown className={`h-3 w-3 text-muted-foreground transition-transform ${assigneeDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
 
@@ -159,11 +161,11 @@ function AddTaskForm({ category, staff, onClose }: {
       <div className="flex gap-2 pt-0.5">
         <button onClick={handleSave} disabled={saving || !title.trim()}
           className="flex-1 flex items-center justify-center gap-1 bg-primary text-primary-foreground text-xs font-semibold py-1.5 rounded-lg disabled:opacity-60 hover:bg-primary/90 transition-colors cursor-pointer shadow-sm">
-          {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />} Add
+          {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />} {t.add}
         </button>
         <button onClick={onClose}
           className="px-3 py-1.5 rounded-lg border border-border hover:bg-muted text-xs transition-colors cursor-pointer">
-          Cancel
+          {t.cancel}
         </button>
       </div>
     </div>
@@ -237,6 +239,7 @@ function TaskCard({ task, canEdit }: { task: Task; canEdit: boolean }) {
 
 // ── Main Task Board ───────────────────────────────────────────────────────────
 export function TaskBoard() {
+  const { t } = useLang()
   const { profile } = useAuth()
   const [tasks, setTasks]       = useState<Task[]>([])
   const [staff, setStaff]       = useState<UserProfile[]>([])
@@ -269,7 +272,7 @@ export function TaskBoard() {
     <Card className="col-span-full">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Task Board</CardTitle>
+          <CardTitle>{t.taskBoard}</CardTitle>
           {!isManagerOrAdmin && (
             <span className="text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">
               Showing your assigned tasks
@@ -297,7 +300,7 @@ export function TaskBoard() {
                   ) : (
                     <button onClick={() => setAddingTo(cat)}
                       className="w-full flex items-center justify-center gap-1 py-2 rounded-lg border border-dashed border-muted-foreground/30 text-muted-foreground hover:border-primary hover:text-primary text-xs transition-colors">
-                      <Plus className="h-3 w-3" /> Add task
+                      <Plus className="h-3 w-3" /> {t.add} task
                     </button>
                   )
                 )}

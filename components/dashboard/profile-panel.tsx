@@ -6,6 +6,7 @@ import {
   Loader2, Pencil, ChefHat, Star, Thermometer, AlertTriangle, ChevronDown
 } from "lucide-react"
 import { useAuth } from "@/components/providers/auth-provider"
+import { useLang } from "@/components/providers/language-provider"
 import { updateUserProfile, reportSickLeave } from "@/lib/services/user-service"
 import { auth } from "@/lib/firebase"
 import type { WorkZone, WorkerSkill, SkillLevel, SickLeaveType } from "@/lib/types"
@@ -27,10 +28,11 @@ const roleBadge: Record<string, string> = {
   EMPLOYEE: "bg-green-500/15 text-green-400 border border-green-500/30",
 }
 
-const inputCls = "w-full bg-background border border-border rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary transition-colors"
+const inputCls = "w-full bg-background border-2 border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
 
 // ── Sick Leave Modal ──────────────────────────────────────────────────────────
 export function SickLeaveModal({ onClose }: { onClose: () => void }) {
+  const { t } = useLang()
   const { profile } = useAuth()
   const [type, setType]       = useState<SickLeaveType>("SUDDEN_ILLNESS")
   const [zone, setZone]       = useState<WorkZone>("Kitchen")
@@ -86,7 +88,7 @@ export function SickLeaveModal({ onClose }: { onClose: () => void }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!profile || !start || !end) { setError("Please fill in all fields."); return }
+    if (!profile || !start || !end) { setError(t.fillAllFields); return }
     setSaving(true)
     setError("")
     try {
@@ -112,7 +114,7 @@ export function SickLeaveModal({ onClose }: { onClose: () => void }) {
         {/* Modal Header */}
         <div className="flex items-center justify-between">
           <h3 className="font-extrabold text-lg flex items-center gap-2">
-            <Thermometer className="h-5 w-5 text-red-500" /> Report Sick Leave
+            <Thermometer className="h-5 w-5 text-red-500" /> {t.reportSickLeave}
           </h3>
           <button 
             onClick={onClose} 
@@ -127,24 +129,24 @@ export function SickLeaveModal({ onClose }: { onClose: () => void }) {
             <div className="h-14 w-14 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center mx-auto">
               <Check className="h-7 w-7" />
             </div>
-            <p className="font-semibold text-foreground">Sick leave reported.</p>
+            <p className="font-semibold text-foreground">{t.sickLeaveReported}</p>
             <p className="text-sm text-muted-foreground">
               {type === "SUDDEN_ILLNESS"
-                ? "🚨 High priority alert sent to all branches."
-                : "Alert sent to your manager."}
+                ? t.highPriorityAlertSent
+                : t.alertSentToManager}
             </p>
             <button 
               onClick={onClose} 
               className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-all cursor-pointer"
             >
-              Close
+              {t.close}
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Type selector */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Leave Type</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.leaveType}</label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -156,9 +158,9 @@ export function SickLeaveModal({ onClose }: { onClose: () => void }) {
                   }`}
                 >
                   <AlertTriangle className="h-5 w-5" />
-                  Sudden Illness
+                  {t.suddenIllness}
                   {type === "SUDDEN_ILLNESS" && (
-                    <span className="text-[9px] font-black bg-red-500 text-white px-2 py-0.5 rounded-full tracking-wider mt-0.5">HIGH PRIORITY</span>
+                    <span className="text-[9px] font-black bg-red-500 text-white px-2 py-0.5 rounded-full tracking-wider mt-0.5">{t.highPriority}</span>
                   )}
                 </button>
                 <button
@@ -171,14 +173,14 @@ export function SickLeaveModal({ onClose }: { onClose: () => void }) {
                   }`}
                 >
                   <Thermometer className="h-5 w-5" />
-                  Other Reason
+                  {t.otherReason}
                 </button>
               </div>
             </div>
 
             {/* Zone (Custom Dropdown Selection) */}
             <div className="space-y-1.5 relative">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Your Zone</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.yourZone}</label>
               
               <button
                 type="button"
@@ -212,17 +214,17 @@ export function SickLeaveModal({ onClose }: { onClose: () => void }) {
             {/* Date + times */}
             <div className="grid grid-cols-3 gap-2">
               <div className="col-span-3 space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Date</label>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.date}</label>
                 <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
                   className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
               </div>
               <div className="col-span-1 space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">From</label>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.from}</label>
                 <input type="time" value={start} onChange={(e) => setStart(e.target.value)}
                   className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
               </div>
               <div className="col-span-1 space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">To</label>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.to}</label>
                 <input type="time" value={end} onChange={(e) => setEnd(e.target.value)}
                   className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
               </div>
@@ -231,8 +233,8 @@ export function SickLeaveModal({ onClose }: { onClose: () => void }) {
             {/* Note */}
             {type === "OTHER" && (
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Note (optional)</label>
-                <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Brief reason..."
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.note}</label>
+                <input value={note} onChange={(e) => setNote(e.target.value)} placeholder={t.reason}
                   className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary focus:shadow-sm" />
               </div>
             )}
@@ -244,7 +246,7 @@ export function SickLeaveModal({ onClose }: { onClose: () => void }) {
                 type === "SUDDEN_ILLNESS" ? "bg-red-500 hover:bg-red-600 hover:shadow-lg" : "bg-primary hover:bg-primary/90 hover:shadow-lg"
               }`}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Thermometer className="h-4 w-4" />}
-              {type === "SUDDEN_ILLNESS" ? "Send High Priority Alert" : "Submit Sick Leave"}
+              {type === "SUDDEN_ILLNESS" ? t.sendAlert : t.submitLeave}
             </button>
           </form>
         )}
@@ -255,11 +257,12 @@ export function SickLeaveModal({ onClose }: { onClose: () => void }) {
 
 // ── Skill Zone Editor ─────────────────────────────────────────────────────────
 function SkillEditor({
-  skills, onChange, editing,
+  skills, onChange, editing, t
 }: {
   skills: WorkerSkill[]
   onChange: (s: WorkerSkill[]) => void
   editing: boolean
+  t: any
 }) {
   const toggle = (zone: WorkZone) => {
     const exists = skills.find((s) => s.zone === zone)
@@ -275,7 +278,7 @@ function SkillEditor({
   }
 
   if (!editing) {
-    if (skills.length === 0) return <span className="text-sm text-muted-foreground">None set — edit to add skills</span>
+    if (skills.length === 0) return <span className="text-sm text-muted-foreground">{t.noneSet}</span>
     return (
       <div className="flex flex-wrap gap-1.5 mt-1">
         {skills.map((s) => (
@@ -333,6 +336,7 @@ function SkillEditor({
 // ── Main Profile Panel ────────────────────────────────────────────────────────
 export function ProfilePanel({ onClose }: { onClose: () => void }) {
   const { profile } = useAuth()
+  const { t } = useLang()
   const panelRef = useRef<HTMLDivElement>(null)
 
   const [editing, setEditing]   = useState(false)
@@ -408,104 +412,124 @@ export function ProfilePanel({ onClose }: { onClose: () => void }) {
         <div ref={panelRef}
           className="relative w-full max-w-sm bg-card border border-border rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200 max-h-[90vh] overflow-y-auto">
 
-          <div className="h-20 bg-gradient-to-br from-primary to-blue-600 relative shrink-0">
+          {/* Header with gradient background */}
+          <div className="h-32 bg-gradient-to-br from-primary via-blue-600 to-purple-600 relative shrink-0">
             <button onClick={onClose}
-              className="absolute top-3 right-3 p-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors">
+              className="absolute top-4 right-4 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-all hover:rotate-90 duration-300">
               <X className="h-4 w-4" />
             </button>
+            
+            {/* Decorative circles */}
+            <div className="absolute top-4 left-4 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
+            <div className="absolute bottom-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl" />
           </div>
 
           <div className="px-6 pb-6">
-            <div className="-mt-10 mb-4 flex items-end justify-between">
-              <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-primary to-blue-600 border-4 border-card flex items-center justify-center text-white text-2xl font-bold shadow-lg">
-                {initials}
+            {/* Profile Avatar */}
+            <div className="-mt-16 mb-6 flex items-end justify-between">
+              <div className="relative">
+                <div className="h-24 w-24 rounded-2xl bg-gradient-to-br from-primary to-blue-600 border-4 border-card flex items-center justify-center text-white text-3xl font-bold shadow-xl">
+                  {initials}
+                </div>
+                {/* Online status indicator */}
+                <div className="absolute bottom-1 right-1 h-5 w-5 bg-green-500 rounded-full border-4 border-card shadow-lg" />
               </div>
+              
               {!editing ? (
                 <button onClick={() => setEditing(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border hover:bg-muted text-sm font-medium transition-colors">
-                  <Pencil className="h-3.5 w-3.5" /> Edit
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border hover:border-primary hover:bg-primary/5 text-sm font-semibold transition-all hover:shadow-md">
+                  <Pencil className="h-4 w-4" /> {t.edit}
                 </button>
               ) : (
                 <div className="flex gap-2">
                   <button onClick={handleSave} disabled={saving}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-60 transition-colors">
-                    {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                    Save
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-60 transition-all hover:shadow-lg">
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                    {t.save}
                   </button>
                   <button onClick={handleCancel}
-                    className="px-3 py-1.5 rounded-xl border border-border hover:bg-muted text-sm font-medium transition-colors">
-                    Cancel
+                    className="px-4 py-2 rounded-xl border border-border hover:bg-muted text-sm font-semibold transition-all">
+                    {t.cancel}
                   </button>
                 </div>
               )}
             </div>
 
+            {/* Role Badge */}
             {profile?.role && (
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${roleBadge[profile.role]}`}>
-                {profile.role}
-              </span>
+              <div className="mb-4">
+                <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full ${roleBadge[profile.role]} shadow-sm`}>
+                  <Shield className="h-3 w-3" />
+                  {profile.role}
+                </span>
+              </div>
             )}
 
+            {/* Success/Error Messages */}
             {saved && (
-              <div className="mt-3 flex items-center gap-2 text-sm text-green-500 bg-green-500/10 border border-green-500/20 rounded-xl px-3 py-2">
-                <Check className="h-4 w-4 shrink-0" /> Profile saved
+              <div className="mb-4 flex items-center gap-2 text-sm text-green-500 bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-3 animate-in fade-in slide-in-from-top-1 duration-300">
+                <Check className="h-4 w-4 shrink-0" /> {t.profileSaved}
               </div>
             )}
             {error && (
-              <div className="mt-3 text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">{error}</div>
+              <div className="mb-4 text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 animate-in fade-in slide-in-from-top-1 duration-300">{error}</div>
             )}
 
-            <div className="mt-4 space-y-3">
-              <Field icon={<User className="h-4 w-4" />} label="Full Name" editing={editing}>
+            {/* Profile Fields */}
+            <div className="space-y-3">
+              <Field icon={<User className="h-4 w-4" />} label={t.fullName} editing={editing}>
                 {editing ? <input value={name} onChange={(e) => setName(e.target.value)} className={inputCls} placeholder="John Smith" />
-                  : <span className="text-sm font-medium">{name || "—"}</span>}
+                  : <span className="text-sm font-semibold text-foreground">{name || "—"}</span>}
               </Field>
 
-              <Field icon={<Mail className="h-4 w-4" />} label="Email" editing={false}>
-                <span className="text-sm text-muted-foreground">{profile?.email}</span>
+              <Field icon={<Mail className="h-4 w-4" />} label={t.email} editing={false}>
+                <span className="text-sm text-muted-foreground break-all">{profile?.email}</span>
               </Field>
 
-              <Field icon={<Phone className="h-4 w-4" />} label="Phone" editing={editing}>
+              <Field icon={<Phone className="h-4 w-4" />} label={t.phone} editing={editing}>
                 {editing ? <input value={phone} onChange={(e) => setPhone(e.target.value)} className={inputCls} placeholder="+1 555 0100" />
-                  : <span className="text-sm font-medium">{phone || "—"}</span>}
+                  : <span className="text-sm font-semibold text-foreground">{phone || "—"}</span>}
               </Field>
 
-              <Field icon={<Briefcase className="h-4 w-4" />} label="Position" editing={editing}>
+              <Field icon={<Briefcase className="h-4 w-4" />} label={t.position} editing={editing}>
                 {editing ? <input value={position} onChange={(e) => setPosition(e.target.value)} className={inputCls} placeholder="Head Chef" />
-                  : <span className="text-sm font-medium">{position || "—"}</span>}
+                  : <span className="text-sm font-semibold text-foreground">{position || "—"}</span>}
               </Field>
 
-              <Field icon={<Shield className="h-4 w-4" />} label="Branch" editing={editing}>
+              <Field icon={<Shield className="h-4 w-4" />} label={t.branch} editing={editing}>
                 {editing ? <input value={branch} onChange={(e) => setBranch(e.target.value)} className={inputCls} placeholder="Branch A" />
-                  : <span className="text-sm font-medium">{branch || "—"}</span>}
+                  : <span className="text-sm font-semibold text-foreground">{branch || "—"}</span>}
               </Field>
 
               {/* Skills — employees only */}
               {profile?.role === "EMPLOYEE" && (
-                <Field icon={<ChefHat className="h-4 w-4" />} label="Skills & Proficiency" editing={editing}>
-                  <SkillEditor skills={skills} onChange={setSkills} editing={editing} />
+                <Field icon={<ChefHat className="h-4 w-4" />} label={t.skillsProficiency} editing={editing}>
+                  <SkillEditor skills={skills} onChange={setSkills} editing={editing} t={t} />
                 </Field>
               )}
             </div>
 
-            {/* Sick leave button — employees only */}
-            {profile?.role === "EMPLOYEE" && (
-              <button
-                onClick={() => setShowSickLeave(true)}
-                className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-red-500/30 text-red-500 hover:bg-red-500/10 text-sm font-semibold transition-colors"
-              >
-                <Thermometer className="h-4 w-4" /> Report Sick Leave
-              </button>
-            )}
+            {/* Action Buttons */}
+            <div className="mt-6 space-y-3">
+              {/* Sick leave button — employees only */}
+              {profile?.role === "EMPLOYEE" && (
+                <button
+                  onClick={() => setShowSickLeave(true)}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-red-500/30 text-red-500 hover:bg-red-500/10 hover:border-red-500/50 text-sm font-bold transition-all hover:shadow-lg hover:shadow-red-500/20"
+                >
+                  <Thermometer className="h-4 w-4" /> {t.reportSickLeave}
+                </button>
+              )}
 
-            <button
-              onClick={() => {
-                sessionStorage.setItem("remo_logged_out", "true")
-                auth.signOut()
-              }}
-              className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-destructive/30 text-destructive hover:bg-destructive/10 text-sm font-semibold transition-colors">
-              <LogOut className="h-4 w-4" /> Sign Out
-            </button>
+              <button
+                onClick={() => {
+                  sessionStorage.setItem("remo_logged_out", "true")
+                  auth.signOut()
+                }}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive/50 text-sm font-bold transition-all hover:shadow-lg hover:shadow-destructive/20">
+                <LogOut className="h-4 w-4" /> {t.signOut}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -519,10 +543,18 @@ function Field({ icon, label, editing, children }: {
   icon: React.ReactNode; label: string; editing: boolean; children: React.ReactNode
 }) {
   return (
-    <div className={`flex items-start gap-3 p-3 rounded-xl transition-colors ${editing ? "bg-muted/40" : "bg-muted/20"}`}>
-      <div className="mt-0.5 text-muted-foreground shrink-0">{icon}</div>
+    <div className={`group flex items-start gap-3 p-4 rounded-xl transition-all border ${
+      editing 
+        ? "bg-muted/50 border-border hover:border-primary/50" 
+        : "bg-muted/20 border-transparent hover:bg-muted/30"
+    }`}>
+      <div className={`mt-0.5 shrink-0 transition-colors ${
+        editing ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+      }`}>
+        {icon}
+      </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">{label}</p>
         {children}
       </div>
     </div>
